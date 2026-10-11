@@ -6,10 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 
-/**
- * Drivetrain only. Uses just the 4 drive motors and the IMU, so it runs
- * even when no other mechanism is wired up or in the configuration.
- */
 @TeleOp(name = "BioBuzz Drive Only", group = "BioBuzz")
 public class DriveOnlyTeleOp extends OpMode {
     private Drivetrain drivetrain;

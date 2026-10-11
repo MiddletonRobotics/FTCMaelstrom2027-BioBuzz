@@ -6,26 +6,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 
-/**
- * Full robot. Gamepad 1 drives (see {@link DriverControls}), gamepad 2 runs the mechanisms:
- *   Right bumper     intake in (hold)        Left bumper    intake reverse (hold)
- *   D-pad up/right/down  elevator UP / TRANSFER / DOWN
- *   Left stick Y     elevator manual nudge
- *   Right trigger    feeder into shooter (hold)   Left trigger  feeder reverse (hold)
- *   Cross (A)        toggle flower servo
- *   Square (X)       toggle gate servo
- *   Triangle (Y)     toggle shooter spin-up
- *   Circle (B)       toggle shooter servo (if configured)
- *
- * Disabled until every mechanism is wired and in the Driver Hub configuration.
- * Delete the @Disabled line to make it show up on the Driver Hub.
- */
 @Disabled
 @TeleOp(name = "BioBuzz TeleOp", group = "BioBuzz")
 public class BioBuzzTeleOp extends OpMode {
@@ -35,7 +22,8 @@ public class BioBuzzTeleOp extends OpMode {
     private Elevator elevator;
     private Transfer transfer;
     private Shooter shooter;
-    private final Gamepad previous2 = new Gamepad();
+    private final Gamepad previous = new Gamepad();
+    private boolean shooterWasReady = false;
 
     @Override
     public void init() {
@@ -44,10 +32,10 @@ public class BioBuzzTeleOp extends OpMode {
         }
         drivetrain = new Drivetrain(hardwareMap);
         driverControls = new DriverControls(drivetrain);
-        intake   = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap);
         elevator = new Elevator(hardwareMap);
         transfer = new Transfer(hardwareMap);
-        shooter  = new Shooter(hardwareMap);
+        shooter = new Shooter(hardwareMap);
         telemetry.addLine("BioBuzz ready. Elevator must be fully DOWN. Press START.");
     }
 
@@ -57,25 +45,36 @@ public class BioBuzzTeleOp extends OpMode {
 
         Gamepad g = gamepad2;
 
-        if (g.right_bumper)     intake.in();
+        if (g.right_bumper) intake.in();
         else if (g.left_bumper) intake.reverse();
-        else                    intake.stop();
+        else intake.stop();
 
-        if (g.dpad_up)          elevator.goToUp();
-        else if (g.dpad_right)  elevator.goToTransfer();
-        else if (g.dpad_down)   elevator.goToDown();
-        elevator.manual(-g.left_stick_y);
+        if (g.dpad_up) elevator.goToUp();
+        else if (g.dpad_right) elevator.goToTransfer();
+        else if (g.dpad_down) elevator.goToDown();
+        if (Math.abs(g.left_stick_y) > RobotConstants.STICK_DEADBAND) elevator.manual(-g.left_stick_y);
 
-        if (g.right_trigger > 0.5)     transfer.feed();
+        if (g.right_trigger > 0.5) transfer.feed();
         else if (g.left_trigger > 0.5) transfer.reverseFeed();
-        else                           transfer.stopFeed();
+        else transfer.stopFeed();
 
-        if (g.cross && !previous2.cross)       transfer.toggleFlower();
-        if (g.square && !previous2.square)     transfer.toggleGate();
-        if (g.triangle && !previous2.triangle) shooter.toggle();
-        if (g.circle && !previous2.circle)     shooter.toggleServo();
-        previous2.copy(g);
+        if (g.cross && !previous.cross) transfer.toggleFlower();
+        if (g.square && !previous.square) transfer.toggleGate();
+        if (g.triangle && !previous.triangle) shooter.toggle();
+        if (g.circle && !previous.circle) shooter.toggleServo();
+        if (g.options && !previous.options) shooter.adjustTargetRpm(RobotConstants.SHOOTER_RPM_STEP);
+        if (g.share && !previous.share) shooter.adjustTargetRpm(-RobotConstants.SHOOTER_RPM_STEP);
+        if (g.ps && !previous.ps) elevator.resetZero();
+        previous.copy(g);
 
+        intake.update();
+        elevator.update();
+
+        boolean ready = shooter.isReady();
+        if (ready && !shooterWasReady) g.rumble(300);
+        shooterWasReady = ready;
+
+        intake.addTelemetry(telemetry);
         elevator.addTelemetry(telemetry);
         transfer.addTelemetry(telemetry);
         shooter.addTelemetry(telemetry);
@@ -86,7 +85,7 @@ public class BioBuzzTeleOp extends OpMode {
     public void stop() {
         drivetrain.stop();
         intake.stop();
-        transfer.stopFeed();
+        transfer.reset();
         shooter.stop();
     }
 }
