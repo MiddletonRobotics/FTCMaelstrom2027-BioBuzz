@@ -19,7 +19,7 @@ public class Intake {
     private State state = State.STOPPED;
     private final ElapsedTime overCurrentTimer = new ElapsedTime();
     private final ElapsedTime unjamTimer = new ElapsedTime();
-    private double lastCurrent = 0;
+    private double current = 0;
 
     public Intake(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, RobotConstants.INTAKE);
@@ -48,8 +48,8 @@ public class Intake {
         }
         if (!RobotConstants.INTAKE_JAM_DETECTION || state != State.INTAKING) return;
 
-        lastCurrent = motor.getCurrent(CurrentUnit.AMPS);
-        if (lastCurrent < RobotConstants.INTAKE_JAM_AMPS) {
+        current = motor.getCurrent(CurrentUnit.AMPS);
+        if (current < RobotConstants.INTAKE_JAM_AMPS) {
             overCurrentTimer.reset();
         } else if (overCurrentTimer.seconds() > RobotConstants.INTAKE_JAM_TIME_S) {
             unjamTimer.reset();
@@ -70,6 +70,6 @@ public class Intake {
 
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addData("Intake", state + (RobotConstants.INTAKE_JAM_DETECTION
-                ? String.format(Locale.ROOT, "  (%.1f A)", lastCurrent) : ""));
+                ? String.format(Locale.ROOT, "  (%.1f A)", current) : ""));
     }
 }

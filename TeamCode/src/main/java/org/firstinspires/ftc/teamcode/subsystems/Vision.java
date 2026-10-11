@@ -27,16 +27,16 @@ public class Vision {
 
     public static class HiveTarget {
         public final Cell cell;
-        public final double rangeIn;
-        public final double bearingDeg;
-        public final double elevationDeg;
+        public final double range;
+        public final double bearing;
+        public final double elevation;
         public final int tagsSeen;
 
         HiveTarget(Cell cell, AprilTagPoseFtc pose, int tagsSeen) {
             this.cell = cell;
-            this.rangeIn = pose.range;
-            this.bearingDeg = pose.bearing;
-            this.elevationDeg = pose.elevation;
+            this.range = pose.range;
+            this.bearing = pose.bearing;
+            this.elevation = pose.elevation;
             this.tagsSeen = tagsSeen;
         }
     }
@@ -89,7 +89,7 @@ public class Vision {
             } else if (d instanceof AprilTagSingleDetection) {
                 Cell cell = cellForTag(((AprilTagSingleDetection) d).id, blue);
                 if (cell == null) continue;
-                if (best == null || (best.tagsSeen == 1 && d.ftcPose.range < best.rangeIn)) {
+                if (best == null || (best.tagsSeen == 1 && d.ftcPose.range < best.range)) {
                     best = new HiveTarget(cell, d.ftcPose, 1);
                 }
             }
@@ -127,7 +127,7 @@ public class Vision {
         } else {
             telemetry.addData("Our HIVE", "%s CELL is UP (%d tags)", hive.cell, hive.tagsSeen);
             telemetry.addData("  range / bearing / elev", "%.1f in / %.1f° / %.1f°",
-                    hive.rangeIn, hive.bearingDeg, hive.elevationDeg);
+                    hive.range, hive.bearing, hive.elevation);
         }
 
         for (AprilTagDetection d : detections()) {

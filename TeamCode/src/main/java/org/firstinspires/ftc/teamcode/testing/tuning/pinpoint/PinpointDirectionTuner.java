@@ -56,7 +56,7 @@ public class PinpointDirectionTuner extends OpMode {
             telemetry.addLine(instruction);
         } else {
             EncoderDirection direction = reading < 0 ? EncoderDirection.REVERSED : EncoderDirection.FORWARD;
-            telemetry.addLine("c." + pod + "PodDirection.set(" + PinpointTuningConfig.name(direction) + ");");
+            telemetry.addLine("c." + pod + "PodDirection.set(GoBildaPinpointDriver.EncoderDirection." + direction + ");");
         }
     }
 }

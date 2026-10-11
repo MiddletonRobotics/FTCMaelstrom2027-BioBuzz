@@ -57,15 +57,15 @@ public class DriverControls {
         loopTimer.reset();
         if (RobotConstants.DRIVE_ACCEL_LIMIT > 0) {
             double maxStep = RobotConstants.DRIVE_ACCEL_LIMIT * dt;
-            forward = approach(lastForward, forward, maxStep);
-            strafe = approach(lastStrafe, strafe, maxStep);
-            turn = approach(lastTurn, turn, maxStep);
+            forward = limitChange(lastForward, forward, maxStep);
+            strafe = limitChange(lastStrafe, strafe, maxStep);
+            turn = limitChange(lastTurn, turn, maxStep);
         }
         lastForward = forward;
         lastStrafe = strafe;
         lastTurn = turn;
 
-        turn = applyHeadingHold(forward, strafe, turn);
+        turn = holdHeading(forward, strafe, turn);
 
         if (fieldCentric) drivetrain.driveFieldCentric(forward, strafe, turn);
         else drivetrain.drive(forward, strafe, turn);
@@ -74,13 +74,12 @@ public class DriverControls {
                 + (reverseDrive && !fieldCentric ? "  [REVERSED]" : "")
                 + (holdingHeading ? "  [heading hold]" : ""));
         if (!drivetrain.hasImu()) {
-            telemetry.addLine("WARNING: no IMU named \"" + RobotConstants.IMU
-                    + "\" in config. Field-centric and heading hold disabled.");
+            telemetry.addLine("No IMU found, field-centric and heading hold are off");
         }
         drivetrain.addTelemetry(telemetry);
     }
 
-    private double applyHeadingHold(double forward, double strafe, double turn) {
+    private double holdHeading(double forward, double strafe, double turn) {
         if (!RobotConstants.HEADING_HOLD_ENABLED || !drivetrain.hasImu()) {
             holdingHeading = false;
             return turn;
@@ -106,7 +105,7 @@ public class DriverControls {
         return Math.signum(value) * Math.pow(Math.abs(value), RobotConstants.DRIVE_INPUT_EXPONENT);
     }
 
-    private static double approach(double current, double target, double maxStep) {
+    private static double limitChange(double current, double target, double maxStep) {
         return current + Range.clip(target - current, -maxStep, maxStep);
     }
 }

@@ -19,7 +19,7 @@ import java.util.Iterator;
 public class Drivetrain {
     public enum Wheel { FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT }
 
-    private static final double POWER_EPSILON = 0.001;
+    private static final double MIN_POWER_CHANGE = 0.001;
     private static final double VOLTAGE_READ_INTERVAL = 0.5;
 
     private final DcMotorEx[] motors = new DcMotorEx[4];
@@ -68,9 +68,8 @@ public class Drivetrain {
         for (DcMotorEx motor : hardwareMap.getAll(DcMotorEx.class)) {
             if (motor.getPortNumber() == port) return motor;
         }
-        throw new IllegalStateException("No drive motor \"" + name + "\" and nothing configured on"
-                + " motor port " + port + ". On the Driver Hub: Configure Robot > add all 4 drive"
-                + " motors (port 0 backRight, 1 backLeft, 2 frontLeft, 3 frontRight) > Save > Activate.");
+        throw new IllegalStateException("Can't find drive motor " + name + " (port " + port
+                + "). Check that the BioBuzz configuration is active.");
     }
 
     public void drive(double forward, double strafe, double turn) {
@@ -104,14 +103,14 @@ public class Drivetrain {
     public void setPower(Wheel wheel, double power) {
         power = Range.clip(power, -1, 1);
         int i = wheel.ordinal();
-        if (Math.abs(power - lastPower[i]) > POWER_EPSILON || (power == 0 && lastPower[i] != 0)) {
+        if (Math.abs(power - lastPower[i]) > MIN_POWER_CHANGE || (power == 0 && lastPower[i] != 0)) {
             motors[i].setPower(power);
             lastPower[i] = power;
         }
     }
 
-    public void setReversed(Wheel wheel, boolean isReversed) {
-        reversed[wheel.ordinal()] = isReversed;
+    public void setReversed(Wheel wheel, boolean reverse) {
+        reversed[wheel.ordinal()] = reverse;
         applyDirection(wheel);
     }
 

@@ -51,33 +51,33 @@ public class Auto {
         Pose start = flip(START), shoot = flip(SHOOT), park = flip(PARK);
         follower.setPose(start);
 
-        driveThrough(start, shoot);
+        followPath(start, shoot);
         shoot();
 
-        if (beforePark()) {
+        if (hasTimeLeft()) {
             Pose sideFlower = flip(SIDE_FLOWER), viaSide = flip(VIA_SIDE);
-            driveThrough(shoot, viaSide, sideFlower);
+            followPath(shoot, viaSide, sideFlower);
             intake();
-            driveThrough(sideFlower, viaSide, shoot);
+            followPath(sideFlower, viaSide, shoot);
             shoot();
         }
 
         if (matchTimer.seconds() < FAR_FLOWER_CUTOFF) {
             Pose farFlower = flip(FAR_FLOWER);
-            driveThrough(shoot, flip(VIA_FAR_1), flip(VIA_FAR_2), farFlower);
+            followPath(shoot, flip(VIA_FAR_1), flip(VIA_FAR_2), farFlower);
             intake();
-            driveThrough(farFlower, park);
+            followPath(farFlower, park);
         } else {
             Pose here = follower.pose();
-            if (here.distance(shoot) < 6) driveThrough(shoot, flip(VIA_PARK), park);
-            else driveThrough(here, park);
+            if (here.distance(shoot) < 6) followPath(shoot, flip(VIA_PARK), park);
+            else followPath(here, park);
         }
 
         follower.hold(park);
         while (opMode.opModeIsActive()) follower.update();
     }
 
-    private void driveThrough(Pose... points) {
+    private void followPath(Pose... points) {
         Pose from = points[0], to = points[points.length - 1];
         Path path = points.length == 2 ? line(from, to) : curve(points);
         drive(path.linear(from, to));
@@ -95,18 +95,18 @@ public class Auto {
         }
     }
 
-    private void shoot() { waitHolding(SHOOT_TIME); }
-    private void intake() { waitHolding(INTAKE_TIME); }
+    private void shoot() { holdFor(SHOOT_TIME); }
+    private void intake() { holdFor(INTAKE_TIME); }
 
-    private void waitHolding(double seconds) {
+    private void holdFor(double seconds) {
         follower.hold(follower.pose());
         ElapsedTime timer = new ElapsedTime();
-        while (opMode.opModeIsActive() && timer.seconds() < seconds && beforePark()) {
+        while (opMode.opModeIsActive() && timer.seconds() < seconds && hasTimeLeft()) {
             follower.update();
         }
     }
 
-    private boolean beforePark() {
+    private boolean hasTimeLeft() {
         return matchTimer.seconds() < PARK_BY;
     }
 

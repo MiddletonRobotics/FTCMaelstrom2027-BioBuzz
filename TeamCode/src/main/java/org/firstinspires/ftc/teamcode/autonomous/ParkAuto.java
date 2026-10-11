@@ -39,7 +39,7 @@ public class ParkAuto extends LinearOpMode {
             telemetry.addData("Park target", "%.0f in forward, %.0f in %s",
                     RobotConstants.AUTO_PARK_FORWARD_IN, RobotConstants.AUTO_PARK_STRAFE_IN,
                     strafeRight ? "right" : "left");
-            if (!drivetrain.hasImu()) telemetry.addLine("WARNING: no IMU, heading hold disabled");
+            if (!drivetrain.hasImu()) telemetry.addLine("No IMU found, heading hold is off");
             telemetry.update();
         }
         if (isStopRequested()) return;

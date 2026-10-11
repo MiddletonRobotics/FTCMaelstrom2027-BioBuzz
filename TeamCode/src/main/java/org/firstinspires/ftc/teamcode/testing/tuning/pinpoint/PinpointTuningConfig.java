@@ -15,9 +15,7 @@ final class PinpointTuningConfig {
     }
 
     static String missingMessage() {
-        return "NO PINPOINT named \"" + Constants.localizerConfig.name.get() + "\" in the configuration.\n"
-                + "Plug it into an I2C port, add it in Configure Robot as\n"
-                + "\"goBILDA Pinpoint Odometry Computer\" with that name, then restart.";
+        return "No Pinpoint named \"" + Constants.localizerConfig.name.get() + "\" in the configuration.";
     }
 
     static PinpointConfig withDirections(GoBildaPinpointDriver.EncoderDirection xDirection,
@@ -38,9 +36,5 @@ final class PinpointTuningConfig {
             c.globalDistanceUnit.set(DistanceUnit.INCH);
             c.offsetUnits.set(DistanceUnit.INCH);
         });
-    }
-
-    static String name(GoBildaPinpointDriver.EncoderDirection direction) {
-        return "GoBildaPinpointDriver.EncoderDirection." + direction;
     }
 }
