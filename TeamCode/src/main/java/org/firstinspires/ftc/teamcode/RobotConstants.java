@@ -43,8 +43,14 @@ public final class RobotConstants {
 
     public static final boolean FRONT_LEFT_REVERSED = true;
     public static final boolean FRONT_RIGHT_REVERSED = false;
-    public static final boolean BACK_LEFT_REVERSED = false;
-    public static final boolean BACK_RIGHT_REVERSED = false;
+    public static final boolean BACK_LEFT_REVERSED = true;
+    public static final boolean BACK_RIGHT_REVERSED = true;
+
+    // Full-power wheel speed in ticks/sec, measured by Drive Tuner (wheels off the ground)
+    public static final double FRONT_LEFT_MAX_TPS = 2650;
+    public static final double FRONT_RIGHT_MAX_TPS = 2650;
+    public static final double BACK_LEFT_MAX_TPS = 2650;
+    public static final double BACK_RIGHT_MAX_TPS = 2650;
 
     public static final boolean DRIVE_BRAKE = true;
     public static final double DRIVE_MAX_POWER = 1.0;

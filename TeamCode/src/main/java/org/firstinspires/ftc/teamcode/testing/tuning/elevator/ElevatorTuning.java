@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.RobotConstants;
 @Disabled
 @TeleOp(name = "Elevator Tuning", group = "Tuning")
 public class ElevatorTuning extends OpMode {
-    private static final double MAX_POWER = 0.6;
+    private static final double MAX_POWER = 0.5;
     private DcMotor elevator;
     private boolean previousCross = false;
     private int highest = 0;

@@ -95,7 +95,7 @@ public class Auto {
         }
     }
 
-    private void shoot() { holdFor(SHOOT_TIME); }
+    private void shoot() { holdFor(SHOOT_TIME);
     private void intake() { holdFor(INTAKE_TIME); }
 
     private void holdFor(double seconds) {
