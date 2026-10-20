@@ -18,7 +18,6 @@ public final class MotorFinder {
             RobotConstants.FRONT_LEFT_PORT, RobotConstants.FRONT_RIGHT_PORT,
             RobotConstants.BACK_LEFT_PORT, RobotConstants.BACK_RIGHT_PORT};
 
-    // Drive motors by name; a missing name falls back to its port on the same hub as the named ones
     public static DcMotorEx[] drive(HardwareMap hardwareMap, List<String> notes) {
         DcMotorEx[] motors = new DcMotorEx[4];
         DcMotorController hub = null;
@@ -45,7 +44,6 @@ public final class MotorFinder {
         return motors;
     }
 
-    // Intake/elevator by name; a missing name falls back to its port on the hub WITHOUT the drive motors
     public static DcMotorEx expansion(HardwareMap hardwareMap, String name, int port,
                                       DcMotorEx driveMotor, List<String> notes) {
         DcMotorEx motor = hardwareMap.tryGet(DcMotorEx.class, name);
