@@ -8,13 +8,14 @@ public final class RobotConstants {
     // Hardware names (must match the Driver Hub configuration)
     public static final String FRONT_LEFT = "frontLeft";
     public static final String FRONT_RIGHT = "frontRight";
-    public static final String BACK_LEFT = "backLeft";
-    public static final String BACK_RIGHT = "backRight";
-    public static final int BACK_RIGHT_PORT = 0;
-    public static final int BACK_LEFT_PORT = 1;
+    public static final String BACK_LEFT = "backRight";
+    public static final String BACK_RIGHT = "backLeft";
+    public static final int BACK_RIGHT_PORT = 1;
+    public static final int BACK_LEFT_PORT = 0;
     public static final int FRONT_LEFT_PORT = 2;
     public static final int FRONT_RIGHT_PORT = 3;
     public static final String IMU = "imu";
+    public static final String PINPOINT = "pinpoint";
     public static final String INTAKE = "intake";
     public static final String ELEVATOR = "elevator";
     public static final String FEEDER = "transfer";
@@ -43,8 +44,8 @@ public final class RobotConstants {
 
     public static final boolean FRONT_LEFT_REVERSED = true;
     public static final boolean FRONT_RIGHT_REVERSED = false;
-    public static final boolean BACK_LEFT_REVERSED = true;
-    public static final boolean BACK_RIGHT_REVERSED = true;
+    public static final boolean BACK_LEFT_REVERSED = false;
+    public static final boolean BACK_RIGHT_REVERSED = false;
 
     // Full-power wheel speed in ticks/sec, measured by Drive Tuner (wheels off the ground)
     public static final double FRONT_LEFT_MAX_TPS = 2650;
@@ -68,9 +69,6 @@ public final class RobotConstants {
     public static final double NOMINAL_VOLTAGE = 12.0;
 
     public static final double DRIVE_TICKS_PER_REV = 537.7;
-    public static final double WHEEL_DIAMETER_IN = 104.0 / 25.4;
-    public static final double DRIVE_GEAR_RATIO = 1.0;
-    public static final double ODOMETRY_STRAFE_MULTIPLIER = 1.0;
 
     // Park auto
     public static final double AUTO_PARK_FORWARD_IN = 24;
@@ -96,7 +94,7 @@ public final class RobotConstants {
     public static final int ELEVATOR_MAX = 1300;
     public static final double ELEVATOR_POWER = 0.8;
     public static final double ELEVATOR_MANUAL_TICKS_PER_LOOP = 15;
-    public static final boolean ELEVATOR_REVERSED = false;
+    public static final boolean ELEVATOR_REVERSED = true;
     public static final int ELEVATOR_TOLERANCE = 15;
     public static final boolean ELEVATOR_RELAX_AT_BOTTOM = true;
 

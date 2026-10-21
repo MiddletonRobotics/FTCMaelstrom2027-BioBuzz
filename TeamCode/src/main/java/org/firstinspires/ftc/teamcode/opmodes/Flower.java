@@ -12,9 +12,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
+import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +35,6 @@ public class Flower extends OpMode {
     private static final double HOLD_POWER = 0.8;
     private static final int SLOW_ZONE = 200;
     private static final int REST_TICKS = 20;
-    private static final double STALL_AMPS = 8.0;
-    private static final double STALL_TIME = 1.0;
-    private static final double HOME_TIME = 0.3;
 
     private static final boolean[] REVERSED = {
             RobotConstants.FRONT_LEFT_REVERSED, RobotConstants.FRONT_RIGHT_REVERSED,
@@ -48,6 +45,7 @@ public class Flower extends OpMode {
 
     private DcMotorEx[] wheels;
     private IMU imu;
+    private Odometry odometry;
     private boolean aimWorks = true;
     private double heading = 0;
     private final ElapsedTime aimTimer = new ElapsedTime();
@@ -55,11 +53,7 @@ public class Flower extends OpMode {
     private DcMotorEx intake;
     private DcMotorEx elevator;
     private boolean holding = false;
-    private boolean stalled = false;
-    private boolean homed = false;
     private String elevatorState = "";
-    private final ElapsedTime stallTimer = new ElapsedTime();
-    private final ElapsedTime homeTimer = new ElapsedTime();
 
     @Override
     public void init() {
@@ -82,6 +76,8 @@ public class Flower extends OpMode {
             warnings.add("no \"imu\" in config, right stick left/right just spins the robot");
         }
 
+        odometry = new Odometry(hardwareMap);
+
         intake = MotorFinder.expansion(hardwareMap, RobotConstants.INTAKE, 0, wheels[0], warnings);
         intake.setDirection(direction(RobotConstants.INTAKE_REVERSED));
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -101,18 +97,21 @@ public class Flower extends OpMode {
     @Override
     public void start() {
         if (imu != null) imu.resetYaw();
+        odometry.reset();
     }
 
     @Override
     public void loop() {
         for (LynxModule hub : hubs) hub.clearBulkCache();
 
+        odometry.update();
         drive();
         runIntake();
         runElevator();
 
         for (String warning : warnings) telemetry.addLine("! " + warning);
         telemetry.addData("Heading", "%.0f deg", Math.toDegrees(-heading));
+        odometry.addTelemetry(telemetry);
         telemetry.addData("Intake", "%.2f", intake.getPower());
         telemetry.addData("Elevator", "%d / %d ticks  %s", elevator.getCurrentPosition(),
                 RobotConstants.ELEVATOR_MAX, elevatorState);
@@ -178,35 +177,10 @@ public class Flower extends OpMode {
         if (dpad) power = dpadUp ? DPAD_POWER : -DPAD_POWER;
         else power = limit(up == down ? 0 : up ? UP_POWER : -DOWN_POWER, position);
 
-        boolean pushingDown = dpad && dpadDown;
-        if (!pushingDown) homed = false;
-        if (!pushingDown || Math.abs(elevator.getVelocity()) >= 20) {
-            homeTimer.reset();
-        } else if (!homed && homeTimer.seconds() > HOME_TIME) {
-            resetElevator();
-            position = 0;
-            homed = true;
-            gamepad1.rumble(200);
-            gamepad2.rumble(200);
-        }
-        if (homed) power = 0;
-
-        if (power == 0) {
-            stalled = false;
-            stallTimer.reset();
-        } else if (elevator.getCurrent(CurrentUnit.AMPS) < STALL_AMPS) {
-            stallTimer.reset();
-        } else if (!stalled && stallTimer.seconds() > STALL_TIME) {
-            stalled = true;
-            gamepad1.rumble(300);
-            gamepad2.rumble(300);
-        }
-        if (stalled) power = 0;
-
         if (power != 0) {
             stopHolding();
             elevator.setPower(power);
-        } else if (!stalled && position > REST_TICKS) {
+        } else if (position > REST_TICKS) {
             if (!holding) {
                 holding = true;
                 elevator.setTargetPosition(position);
@@ -218,9 +192,7 @@ public class Flower extends OpMode {
             elevator.setPower(0);
         }
 
-        elevatorState = stalled ? "STALLED, let go"
-                : homed ? "bottom set"
-                : power != 0 ? (dpad ? "dpad, no limits" : "moving")
+        elevatorState = power != 0 ? (dpad ? "dpad, no limits" : "moving")
                 : holding ? "holding" : "at bottom";
     }
 

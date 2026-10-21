@@ -45,6 +45,7 @@ public class ParkAuto extends LinearOpMode {
         if (isStopRequested()) return;
 
         drivetrain.resetHeading();
+        drivetrain.odometry.reset();
         sleep(delaySeconds * 1000L);
 
         double targetY = (strafeRight ? -1 : 1) * RobotConstants.AUTO_PARK_STRAFE_IN;

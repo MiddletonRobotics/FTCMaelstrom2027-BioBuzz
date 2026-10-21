@@ -4,11 +4,9 @@ import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Pose;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver.EncoderDirection;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@Disabled
 @TeleOp(name = "Pinpoint 1 - Pod Directions", group = "Pinpoint Tuning")
 public class PinpointDirectionTuner extends OpMode {
     private static final double MIN_PUSH_IN = 3.0;

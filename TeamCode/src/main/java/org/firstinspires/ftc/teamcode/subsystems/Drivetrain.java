@@ -35,7 +35,7 @@ public class Drivetrain {
     private final ElapsedTime voltageTimer = new ElapsedTime();
     private double voltageScale = 1.0;
 
-    public final Odometry odometry = new Odometry();
+    public final Odometry odometry;
 
     public Drivetrain(HardwareMap hardwareMap) {
         motors[0] = findMotor(hardwareMap, RobotConstants.FRONT_LEFT, RobotConstants.FRONT_LEFT_PORT);
@@ -57,6 +57,8 @@ public class Drivetrain {
                     RobotConstants.HUB_LOGO, RobotConstants.HUB_USB)));
             imu.resetYaw();
         }
+
+        odometry = new Odometry(hardwareMap);
 
         Iterator<VoltageSensor> sensors = hardwareMap.voltageSensor.iterator();
         voltageSensor = sensors.hasNext() ? sensors.next() : null;
@@ -108,7 +110,6 @@ public class Drivetrain {
             lastPower[i] = power;
         }
     }
-
     public void setReversed(Wheel wheel, boolean reverse) {
         reversed[wheel.ordinal()] = reverse;
         applyDirection(wheel);
@@ -126,8 +127,7 @@ public class Drivetrain {
     public void update() {
         if (imu != null) heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         updateVoltageScale();
-        odometry.update(getPosition(Wheel.FRONT_LEFT), getPosition(Wheel.FRONT_RIGHT),
-                getPosition(Wheel.BACK_LEFT), getPosition(Wheel.BACK_RIGHT), heading);
+        odometry.update();
     }
 
     private void updateVoltageScale() {
@@ -160,7 +160,7 @@ public class Drivetrain {
 
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addData("Heading (deg)", "%.1f", Math.toDegrees(heading));
-        telemetry.addData("Pose (in)", "x %.1f  y %.1f", odometry.getX(), odometry.getY());
+        odometry.addTelemetry(telemetry);
         telemetry.addData("Encoders FL/FR/BL/BR", "%d / %d / %d / %d",
                 getPosition(Wheel.FRONT_LEFT), getPosition(Wheel.FRONT_RIGHT),
                 getPosition(Wheel.BACK_LEFT), getPosition(Wheel.BACK_RIGHT));

@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.testing.tuning.pinpoint;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,7 +10,6 @@ import org.firstinspires.ftc.teamcode.opmodes.DriverControls;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 
-@Disabled
 @TeleOp(name = "Pinpoint 3 - Test", group = "Pinpoint Tuning")
 public class PinpointTest extends OpMode {
     private Drivetrain drivetrain;
