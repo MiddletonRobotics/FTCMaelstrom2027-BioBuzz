@@ -5,9 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
 
@@ -20,15 +18,10 @@ public class BiobuzzingTeleOp extends OpMode {
 
     private static final double UP_POWER = 1.0;
     private static final double DOWN_POWER = 0.5;
-    private static final double UP_SLOW_POWER = 0.5;
-    private static final double DOWN_SLOW_POWER = 0.3;
-    private static final double DPAD_POWER = 0.5;
-    private static final double HOLD_POWER = 0.8;
-    private static final int SLOW_ZONE = 200;
+    private static final double HOLD_POWER = 0.3;
+    private static final double PRESET_POWER = 0.8;
     private static final int REST_TICKS = 20;
-    private static final double STALL_AMPS = 8.0;
-    private static final double STALL_TIME = 1.0;
-    private static final double HOME_TIME = 0.3;
+    private static final int ONE_ROTATION = 385;
 
     private static final boolean[] REVERSED = {
             RobotConstants.FRONT_LEFT_REVERSED, RobotConstants.FRONT_RIGHT_REVERSED,
@@ -40,11 +33,9 @@ public class BiobuzzingTeleOp extends OpMode {
     private DcMotorEx intake;
     private DcMotorEx elevator;
     private boolean holding = false;
-    private boolean stalled = false;
-    private boolean homed = false;
+    private boolean presetHeld = false;
+    private boolean dropping = false;
     private String elevatorState = "";
-    private final ElapsedTime stallTimer = new ElapsedTime();
-    private final ElapsedTime homeTimer = new ElapsedTime();
 
     @Override
     public void init() {
@@ -101,68 +92,47 @@ public class BiobuzzingTeleOp extends OpMode {
 
     private void runElevator() {
         int position = elevator.getCurrentPosition();
-        boolean dpadUp = gamepad1.dpad_up || gamepad2.dpad_up;
-        boolean dpadDown = gamepad1.dpad_down || gamepad2.dpad_down;
-        boolean dpad = dpadUp != dpadDown;
         boolean up = gamepad1.triangle || gamepad2.triangle;
         boolean down = gamepad1.cross || gamepad2.cross;
 
-        double power;
-        if (dpad) power = dpadUp ? DPAD_POWER : -DPAD_POWER;
-        else power = limit(up == down ? 0 : up ? UP_POWER : -DOWN_POWER, position);
-
-        boolean pushingDown = dpad && dpadDown;
-        if (!pushingDown) homed = false;
-        if (!pushingDown || Math.abs(elevator.getVelocity()) >= 20) {
-            homeTimer.reset();
-        } else if (!homed && homeTimer.seconds() > HOME_TIME) {
-            resetElevator();
-            position = 0;
-            homed = true;
-            gamepad1.rumble(200);
-            gamepad2.rumble(200);
+        if (gamepad1.dpad_up) {
+            if (!presetHeld) {
+                presetHeld = true;
+                dropping = false;
+                holding = true;
+                elevator.setTargetPosition(ONE_ROTATION);
+                elevator.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                elevator.setPower(PRESET_POWER);
+            }
+            elevatorState = "going to 1 rotation";
+            return;
         }
-        if (homed) power = 0;
-
-        if (power == 0) {
-            stalled = false;
-            stallTimer.reset();
-        } else if (elevator.getCurrent(CurrentUnit.AMPS) < STALL_AMPS) {
-            stallTimer.reset();
-        } else if (!stalled && stallTimer.seconds() > STALL_TIME) {
-            stalled = true;
-            gamepad1.rumble(300);
-            gamepad2.rumble(300);
-        }
-        if (stalled) power = 0;
-
-        if (power != 0) {
+        if (presetHeld) {
+            presetHeld = false;
+            dropping = true;
             stopHolding();
-            elevator.setPower(power);
-        } else if (!stalled && position > REST_TICKS) {
+            elevator.setPower(0);
+        }
+
+        if (up != down) {
+            dropping = false;
+            stopHolding();
+            elevator.setPower(up ? UP_POWER : -DOWN_POWER);
+            elevatorState = up ? "up" : "down";
+        } else if (!dropping && position > REST_TICKS) {
             if (!holding) {
                 holding = true;
                 elevator.setTargetPosition(position);
                 elevator.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 elevator.setPower(HOLD_POWER);
             }
+            elevatorState = "holding";
         } else {
+            if (position <= REST_TICKS) dropping = false;
             stopHolding();
             elevator.setPower(0);
+            elevatorState = dropping ? "dropping" : "at bottom";
         }
-
-        elevatorState = stalled ? "STALLED, let go"
-                : homed ? "bottom set"
-                : power != 0 ? (dpad ? "dpad, no limits" : "moving")
-                : holding ? "holding" : "at bottom";
-    }
-
-    private static double limit(double power, int position) {
-        if (power == 0) return 0;
-        int room = power > 0 ? RobotConstants.ELEVATOR_MAX - position : position - RobotConstants.ELEVATOR_DOWN;
-        if (room <= 0) return 0;
-        if (room >= SLOW_ZONE) return power;
-        return power > 0 ? Math.min(power, UP_SLOW_POWER) : Math.max(power, -DOWN_SLOW_POWER);
     }
 
     private void stopHolding() {
