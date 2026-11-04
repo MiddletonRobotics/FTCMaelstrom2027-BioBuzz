@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
-public final class  RobotConstants {
+public final class RobotConstants {
     private RobotConstants() {}
 
     public static final String FRONT_LEFT = "frontLeft";

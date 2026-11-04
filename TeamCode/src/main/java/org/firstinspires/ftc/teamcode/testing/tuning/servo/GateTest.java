@@ -8,21 +8,21 @@ import org.firstinspires.ftc.teamcode.RobotConstants;
 
 @TeleOp(name = "Gate Test", group = "Tuning")
 public class GateTest extends OpMode {
+    private static final String MISSING = "! no \"" + RobotConstants.GATE_SERVO + "\" in config";
+
     private Servo gate;
     private boolean open = false;
 
     @Override
     public void init() {
         gate = hardwareMap.tryGet(Servo.class, RobotConstants.GATE_SERVO);
-        telemetry.addLine(gate == null
-                ? "! no \"" + RobotConstants.GATE_SERVO + "\" in config"
-                : "Gate Test ready. X = open, O = close");
+        telemetry.addLine(gate == null ? MISSING : "Gate Test ready. X = open, O = close");
     }
 
     @Override
     public void loop() {
         if (gate == null) {
-            telemetry.addLine("! no \"" + RobotConstants.GATE_SERVO + "\" in config");
+            telemetry.addLine(MISSING);
             telemetry.update();
             return;
         }

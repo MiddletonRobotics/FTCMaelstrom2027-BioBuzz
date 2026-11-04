@@ -431,12 +431,12 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
     Function<HardwareMap, Drivetrain> drivetrainFunction;
 
     private static double[] POWERS;
-    public static double MAX_BRAKE_TIME = 3; //seconds, the robot shouldn't take longer than this to brake
+    public static double MAX_BRAKE_TIME = 3;
 
     public static int trials = 12;
     public static double maxPower = 1;
     public static double minPower = 0.2;
-    public static double bias = 1.5; // how much it favors doing trials with higher powers
+    public static double bias = 1.5;
     public static double brakingPower = 0.001;
 
     private final ElapsedTime timer = new ElapsedTime();
