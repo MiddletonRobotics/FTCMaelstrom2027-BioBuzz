@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.testing.tuning.servo;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Disabled
 @TeleOp(name = "Servo Tuning", group = "Tuning")
 public class ServoTuning extends OpMode {
     private static final double[] STEPS = {0.1, 0.01, 0.001};

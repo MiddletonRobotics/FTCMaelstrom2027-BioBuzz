@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
@@ -41,17 +40,17 @@ public class BiobuzzingTeleOp extends OpMode {
     public void init() {
         wheels = MotorFinder.drive(hardwareMap, warnings);
         for (int i = 0; i < 4; i++) {
-            wheels[i].setDirection(direction(REVERSED[i]));
+            wheels[i].setDirection(MotorFinder.direction(REVERSED[i]));
             wheels[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         intake = MotorFinder.expansion(hardwareMap, RobotConstants.INTAKE, 0, wheels[0], warnings);
-        intake.setDirection(direction(RobotConstants.INTAKE_REVERSED));
+        intake.setDirection(MotorFinder.direction(RobotConstants.INTAKE_REVERSED));
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         elevator = MotorFinder.expansion(hardwareMap, RobotConstants.ELEVATOR, 1, wheels[0], warnings);
-        elevator.setDirection(direction(RobotConstants.ELEVATOR_REVERSED));
+        elevator.setDirection(MotorFinder.direction(RobotConstants.ELEVATOR_REVERSED));
         elevator.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         resetElevator();
 
@@ -145,10 +144,6 @@ public class BiobuzzingTeleOp extends OpMode {
         elevator.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevator.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         holding = false;
-    }
-
-    private static DcMotorSimple.Direction direction(boolean reversed) {
-        return reversed ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD;
     }
 
     private static double deadband(double value) {

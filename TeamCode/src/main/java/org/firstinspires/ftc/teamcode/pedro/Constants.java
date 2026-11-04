@@ -11,11 +11,11 @@ import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
+import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
 
 public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
@@ -23,10 +23,10 @@ public class Constants {
         c.frontRightName.set(RobotConstants.FRONT_RIGHT);
         c.backLeftName.set(RobotConstants.BACK_LEFT);
         c.backRightName.set(RobotConstants.BACK_RIGHT);
-        c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
-        c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
-        c.backLeftDirection.set(DcMotorSimple.Direction.FORWARD);
-        c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
+        c.frontLeftDirection.set(MotorFinder.direction(RobotConstants.FRONT_LEFT_REVERSED));
+        c.frontRightDirection.set(MotorFinder.direction(RobotConstants.FRONT_RIGHT_REVERSED));
+        c.backLeftDirection.set(MotorFinder.direction(RobotConstants.BACK_LEFT_REVERSED));
+        c.backRightDirection.set(MotorFinder.direction(RobotConstants.BACK_RIGHT_REVERSED));
     });
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {

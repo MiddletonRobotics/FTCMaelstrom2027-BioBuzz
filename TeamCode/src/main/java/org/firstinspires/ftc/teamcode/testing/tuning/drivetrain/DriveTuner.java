@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -15,11 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/*
- * Robot on a box, wheels off the ground.
- * cross    = spin each wheel alone at full power, then all four together, and measure them
- * triangle = after measuring, test speed control at 50% and 90% (all four should match)
- */
 @TeleOp(name = "Drive Tuner", group = "Tuning")
 public class DriveTuner extends LinearOpMode {
     private static final String[] NAMES = {"FRONT_LEFT", "FRONT_RIGHT", "BACK_LEFT", "BACK_RIGHT"};
@@ -31,7 +25,9 @@ public class DriveTuner extends LinearOpMode {
     private static final double SPIN_DOWN_TIME_S = 1.0;
     private static final double MIN_GOOD_TPS = 100;
 
+
     private DcMotorEx[] wheels;
+
     private final List<String> notes = new ArrayList<>();
     private final List<String> results = new ArrayList<>();
     private final double[] maxTps = new double[4];
@@ -41,7 +37,7 @@ public class DriveTuner extends LinearOpMode {
     public void runOpMode() {
         wheels = MotorFinder.drive(hardwareMap, notes);
         for (int i = 0; i < 4; i++) {
-            wheels[i].setDirection(REVERSED[i] ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+            wheels[i].setDirection(MotorFinder.direction(REVERSED[i]));
             wheels[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             wheels[i].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             wheels[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -105,7 +101,6 @@ public class DriveTuner extends LinearOpMode {
         measured = true;
     }
 
-    // Full power on one wheel (or all with -1); returns {average tps, average amps} over the last second
     private double[][] spin(int only, String message) {
         double[] tps = new double[4];
         double[] amps = new double[4];

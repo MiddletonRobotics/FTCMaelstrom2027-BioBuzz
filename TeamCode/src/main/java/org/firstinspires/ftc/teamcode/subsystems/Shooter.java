@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -22,8 +21,7 @@ public class Shooter {
 
     public Shooter(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, RobotConstants.SHOOTER);
-        motor.setDirection(RobotConstants.SHOOTER_REVERSED
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        motor.setDirection(MotorFinder.direction(RobotConstants.SHOOTER_REVERSED));
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(

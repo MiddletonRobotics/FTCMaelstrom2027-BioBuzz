@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.RobotConstants;
@@ -11,7 +13,7 @@ import java.util.List;
 public final class MotorFinder {
     private MotorFinder() {}
 
-    public static final String[] DRIVE_NAMES = {
+    private static final String[] DRIVE_NAMES = {
             RobotConstants.FRONT_LEFT, RobotConstants.FRONT_RIGHT,
             RobotConstants.BACK_LEFT, RobotConstants.BACK_RIGHT};
     private static final int[] DRIVE_PORTS = {
@@ -67,6 +69,25 @@ public final class MotorFinder {
                 }
             }
         }
+    }
+
+    public static double useVelocity(DcMotorEx[] wheels) {
+        double[] maxTps = {
+                RobotConstants.FRONT_LEFT_MAX_TPS, RobotConstants.FRONT_RIGHT_MAX_TPS,
+                RobotConstants.BACK_LEFT_MAX_TPS, RobotConstants.BACK_RIGHT_MAX_TPS};
+        double slowest = Double.MAX_VALUE;
+        for (int i = 0; i < 4; i++) {
+            double f = 32767 / maxTps[i];
+            double p = 0.1 * f;
+            wheels[i].setVelocityPIDFCoefficients(p, 0.1 * p, 0, f);
+            wheels[i].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            slowest = Math.min(slowest, maxTps[i]);
+        }
+        return slowest;
+    }
+
+    public static DcMotorSimple.Direction direction(boolean reversed) {
+        return reversed ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD;
     }
 
     private static DcMotorEx onPort(HardwareMap hardwareMap, int port, DcMotorController hub, boolean sameHub) {

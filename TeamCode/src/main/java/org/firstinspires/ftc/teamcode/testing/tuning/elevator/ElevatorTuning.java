@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.testing.tuning.elevator;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotConstants;
+import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
 
-@Disabled
 @TeleOp(name = "Elevator Tuning", group = "Tuning")
 public class ElevatorTuning extends OpMode {
     private static final double MAX_POWER = 0.5;
@@ -19,8 +17,7 @@ public class ElevatorTuning extends OpMode {
     @Override
     public void init() {
         elevator = hardwareMap.get(DcMotor.class, RobotConstants.ELEVATOR);
-        elevator.setDirection(RobotConstants.ELEVATOR_REVERSED
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        elevator.setDirection(MotorFinder.direction(RobotConstants.ELEVATOR_REVERSED));
         elevator.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         resetZero();
         telemetry.addLine("Elevator must be fully DOWN. Press START.");

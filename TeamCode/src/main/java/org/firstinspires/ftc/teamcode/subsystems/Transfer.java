@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -20,8 +19,7 @@ public class Transfer {
 
     public Transfer(HardwareMap hardwareMap) {
         feeder = hardwareMap.get(DcMotor.class, RobotConstants.FEEDER);
-        feeder.setDirection(RobotConstants.FEEDER_REVERSED
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        feeder.setDirection(MotorFinder.direction(RobotConstants.FEEDER_REVERSED));
         feeder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         feeder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 

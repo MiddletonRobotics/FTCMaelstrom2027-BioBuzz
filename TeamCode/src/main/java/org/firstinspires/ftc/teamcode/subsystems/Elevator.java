@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
@@ -15,8 +14,7 @@ public class Elevator {
 
     public Elevator(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotor.class, RobotConstants.ELEVATOR);
-        motor.setDirection(RobotConstants.ELEVATOR_REVERSED
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        motor.setDirection(MotorFinder.direction(RobotConstants.ELEVATOR_REVERSED));
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setTargetPosition(target);

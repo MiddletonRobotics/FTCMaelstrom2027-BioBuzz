@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -23,10 +22,11 @@ public class Drivetrain {
     private static final double VOLTAGE_READ_INTERVAL = 0.5;
 
     private final DcMotorEx[] motors = new DcMotorEx[4];
-    private final boolean[] reversed = {
+    private static final boolean[] REVERSED = {
             RobotConstants.FRONT_LEFT_REVERSED, RobotConstants.FRONT_RIGHT_REVERSED,
             RobotConstants.BACK_LEFT_REVERSED, RobotConstants.BACK_RIGHT_REVERSED};
     private final double[] lastPower = new double[4];
+    private double topSpeed = 0;
 
     private final IMU imu;
     private double heading = 0;
@@ -43,13 +43,14 @@ public class Drivetrain {
         motors[2] = findMotor(hardwareMap, RobotConstants.BACK_LEFT, RobotConstants.BACK_LEFT_PORT);
         motors[3] = findMotor(hardwareMap, RobotConstants.BACK_RIGHT, RobotConstants.BACK_RIGHT_PORT);
 
-        for (Wheel wheel : Wheel.values()) applyDirection(wheel);
-        for (DcMotorEx motor : motors) {
-            motor.setZeroPowerBehavior(RobotConstants.DRIVE_BRAKE
+        for (int i = 0; i < 4; i++) {
+            motors[i].setDirection(MotorFinder.direction(REVERSED[i]));
+            motors[i].setZeroPowerBehavior(RobotConstants.DRIVE_BRAKE
                     ? DcMotor.ZeroPowerBehavior.BRAKE : DcMotor.ZeroPowerBehavior.FLOAT);
-            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motors[i].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motors[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
+        if (RobotConstants.DRIVE_VELOCITY) topSpeed = MotorFinder.useVelocity(motors);
 
         imu = hardwareMap.tryGet(IMU.class, RobotConstants.IMU);
         if (imu != null) {
@@ -106,22 +107,10 @@ public class Drivetrain {
         power = Range.clip(power, -1, 1);
         int i = wheel.ordinal();
         if (Math.abs(power - lastPower[i]) > MIN_POWER_CHANGE || (power == 0 && lastPower[i] != 0)) {
-            motors[i].setPower(power);
+            if (topSpeed > 0) motors[i].setVelocity(power * topSpeed);
+            else motors[i].setPower(power);
             lastPower[i] = power;
         }
-    }
-    public void setReversed(Wheel wheel, boolean reverse) {
-        reversed[wheel.ordinal()] = reverse;
-        applyDirection(wheel);
-    }
-
-    public boolean isReversed(Wheel wheel) {
-        return reversed[wheel.ordinal()];
-    }
-
-    private void applyDirection(Wheel wheel) {
-        motors[wheel.ordinal()].setDirection(isReversed(wheel)
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
     }
 
     public void update() {

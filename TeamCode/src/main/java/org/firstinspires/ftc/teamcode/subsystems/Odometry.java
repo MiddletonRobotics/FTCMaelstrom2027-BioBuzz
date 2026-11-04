@@ -19,10 +19,6 @@ public class Odometry {
         reset();
     }
 
-    public boolean isConnected() {
-        return pinpoint != null;
-    }
-
     public void update() {
         if (pinpoint == null) return;
         pinpoint.update();

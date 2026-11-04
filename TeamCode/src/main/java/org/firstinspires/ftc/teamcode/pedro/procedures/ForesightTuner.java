@@ -451,7 +451,6 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
     private double measuredVelocity;
     private double totalHeading;
     private double previousHeading;
-//    private VoltageSensor voltageSensor;
 
     public HeadingBraking(Function<HardwareMap, Localizer> localizerFunction, Function<HardwareMap, Drivetrain> drivetrainFunction) {
         super("Heading Braking", "A tuner for finding the Heading Braking Coefficients. The robot will turn back at forth at various speed levels.", false);
@@ -488,12 +487,6 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
             if (iteration < POWERS.length) {
                 power = POWERS[iteration];
             }
-
-//            if (state != State.DONE) {
-//                double voltage = voltageSensor.getVoltage();
-//                double duty = state == State.BRAKE ? -brakingPower * direction: power * direction;
-//                double appliedVoltage = voltage * duty;
-//            }
 
             switch (state) {
                 case DRIVE: {
@@ -1103,7 +1096,6 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
         double kP_large = calculatekP(ALPHA_LARGE);
         double kP_small = calculatekP(ALPHA_SMALL);
 
-        //  kP_large, kP_small, coast kV, and brake kV (scaled by aggressiveness factor)
         return List.of(kP_large, kP_small, kV, kV * VEL_AGGRESSIVENESS);
     }
 

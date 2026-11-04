@@ -1,19 +1,17 @@
 package org.firstinspires.ftc.teamcode.testing.tuning.shooter;
 
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
+import org.firstinspires.ftc.teamcode.subsystems.MotorFinder;
 
-@Disabled
 @TeleOp(name = "Flywheel Tuning", group = "Tuning")
 public class FlywheelTuning extends OpMode {
     private static final String[] GAIN_NAMES = {"P", "I", "D", "F"};
@@ -37,8 +35,7 @@ public class FlywheelTuning extends OpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
         shooter = hardwareMap.get(DcMotorEx.class, RobotConstants.SHOOTER);
-        shooter.setDirection(RobotConstants.SHOOTER_REVERSED
-                ? DcMotorSimple.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        shooter.setDirection(MotorFinder.direction(RobotConstants.SHOOTER_REVERSED));
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         applyGains();
