@@ -94,6 +94,10 @@ public final class  RobotConstants {
 
     public static final boolean FEEDER_REVERSED = false;
     public static final double FEEDER_POWER = 1.0;
+    public static final double INTAKE_MAX_TPS = 2600;
+    public static final double FEEDER_MAX_TPS = 2600;
+    public static final double INTAKE_SPEED = 0.85;
+    public static final double FEEDER_SPEED = 0.85;
     public static final double FLOWER_CLOSED = 0.5;
     public static final double FLOWER_OPEN = 0.55;
     public static final double GATE_CLOSED = 0.4;
