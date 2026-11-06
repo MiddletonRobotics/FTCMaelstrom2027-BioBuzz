@@ -42,5 +42,6 @@ public class VelocityMotor {
 
     public void stop() { motor.setPower(0); }
     public double tps() { return motor.getVelocity(); }
+
     public boolean usingVelocity() { return velocity; }
 }

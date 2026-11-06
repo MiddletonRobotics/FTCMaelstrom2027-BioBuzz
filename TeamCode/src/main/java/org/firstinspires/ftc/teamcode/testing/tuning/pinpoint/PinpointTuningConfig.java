@@ -23,12 +23,7 @@ final class PinpointTuningConfig {
         PinpointConfig saved = Constants.localizerConfig;
         return new PinpointConfig(c -> {
             c.name.set(saved.name.get());
-            try {
-                c.podType.set(saved.podType.get());
-            } catch (IllegalStateException customPods) {
-                c.encoderResolutionUnit.set(DistanceUnit.INCH);
-                c.ticksPerUnit.set(saved.ticksPerUnit.get());
-            }
+            c.podType.set(saved.podType.get());
             c.xPodDirection.set(xDirection);
             c.yPodDirection.set(yDirection);
             c.xPodOffset.set(0.0);

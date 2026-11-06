@@ -1,74 +1,36 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 
+import java.util.List;
+
 public class Shooter {
-    private static final double MAX_RPM = 6000;
+    private final Flywheel flywheel;
 
-    private final DcMotorEx motor;
-    private final Servo servo;
-    private boolean spinning = false;
-    private boolean servoAtB = false;
-    private double targetRpm = RobotConstants.SHOOTER_TARGET_RPM;
-
-    public Shooter(HardwareMap hardwareMap) {
-        motor = hardwareMap.get(DcMotorEx.class, RobotConstants.SHOOTER);
+    public Shooter(HardwareMap hardwareMap, DcMotorEx anchor, List<String> warnings) {
+        DcMotorEx motor = MotorFinder.expansion(hardwareMap, RobotConstants.SHOOTER, 3, anchor, warnings);
         motor.setDirection(MotorFinder.direction(RobotConstants.SHOOTER_REVERSED));
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(
-                RobotConstants.SHOOTER_P, RobotConstants.SHOOTER_I,
-                RobotConstants.SHOOTER_D, RobotConstants.SHOOTER_F));
-
-        servo = hardwareMap.tryGet(Servo.class, RobotConstants.SHOOTER_SERVO);
-        if (servo != null) servo.setPosition(RobotConstants.SHOOTER_SERVO_A);
+        flywheel = new Flywheel(motor, hardwareMap.voltageSensor.iterator().next());
     }
 
-    public void spinUp() {
-        spinning = true;
-        motor.setVelocity(targetRpm * RobotConstants.SHOOTER_TICKS_PER_REV / 60.0);
+    public double run(boolean shooting, boolean reverse) {
+        flywheel.setRpm(shooting ? RobotConstants.SHOOTER_TARGET_RPM : 0);
+        double roller = 0;
+        if (shooting && flywheel.atSpeed()) roller = RobotConstants.SPIN_POWER;
+        else if (!shooting && reverse) roller = -RobotConstants.SPIN_POWER;
+        flywheel.update();
+        return roller;
     }
 
-    public void stop() {
-        spinning = false;
-        motor.setPower(0);
-    }
-
-    public void toggle() {
-        if (spinning) stop();
-        else spinUp();
-    }
-
-    public void adjustTargetRpm(double deltaRpm) {
-        targetRpm = Range.clip(targetRpm + deltaRpm, 0, MAX_RPM);
-        if (spinning) spinUp();
-    }
-
-    public double getRpm() {
-        return motor.getVelocity() / RobotConstants.SHOOTER_TICKS_PER_REV * 60.0;
-    }
-
-    public boolean isReady() {
-        return spinning && Math.abs(getRpm() - targetRpm) < RobotConstants.SHOOTER_READY_TOLERANCE_RPM;
-    }
-
-    public void toggleServo() {
-        if (servo == null) return;
-        servoAtB = !servoAtB;
-        servo.setPosition(servoAtB ? RobotConstants.SHOOTER_SERVO_B : RobotConstants.SHOOTER_SERVO_A);
-    }
+    public void stop() { flywheel.stop(); }
 
     public void addTelemetry(Telemetry telemetry) {
-        telemetry.addData("Shooter RPM", "%.0f / %.0f %s", getRpm(),
-                spinning ? targetRpm : 0.0, isReady() ? "READY" : "");
-        if (!spinning) telemetry.addData("Shooter set to", "%.0f RPM", targetRpm);
+        telemetry.addData("Shooter", "%.0f / %.0f rpm  %s", flywheel.rpm(), flywheel.target(),
+                flywheel.target() <= 0 ? "off" : flywheel.atSpeed() ? "READY" : "spinning up");
+        if (!flywheel.hasEncoder()) telemetry.addLine("! shooter encoder reads 0, using plain power");
     }
 }

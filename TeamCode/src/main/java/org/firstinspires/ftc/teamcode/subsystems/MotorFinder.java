@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -57,33 +56,6 @@ public final class MotorFinder {
         }
         notes.add(name + " not in config, using expansion hub port " + port);
         return motor;
-    }
-
-    public static void checkUnique(DcMotorEx... motors) {
-        for (int i = 0; i < motors.length; i++) {
-            for (int j = i + 1; j < motors.length; j++) {
-                if (motors[i].getController() == motors[j].getController()
-                        && motors[i].getPortNumber() == motors[j].getPortNumber()) {
-                    throw new IllegalStateException("Two motors in the config are on the same port ("
-                            + motors[i].getPortNumber() + "). Fix the robot configuration.");
-                }
-            }
-        }
-    }
-
-    public static double useVelocity(DcMotorEx[] wheels) {
-        double[] maxTps = {
-                RobotConstants.FRONT_LEFT_MAX_TPS, RobotConstants.FRONT_RIGHT_MAX_TPS,
-                RobotConstants.BACK_LEFT_MAX_TPS, RobotConstants.BACK_RIGHT_MAX_TPS};
-        double slowest = Double.MAX_VALUE;
-        for (int i = 0; i < 4; i++) {
-            double f = 32767 / maxTps[i];
-            double p = 0.1 * f;
-            wheels[i].setVelocityPIDFCoefficients(p, 0.1 * p, 0, f);
-            wheels[i].setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            slowest = Math.min(slowest, maxTps[i]);
-        }
-        return slowest;
     }
 
     public static DcMotorSimple.Direction direction(boolean reversed) {

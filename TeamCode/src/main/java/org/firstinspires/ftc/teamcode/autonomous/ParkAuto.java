@@ -39,13 +39,11 @@ public class ParkAuto extends LinearOpMode {
             telemetry.addData("Park target", "%.0f in forward, %.0f in %s",
                     RobotConstants.AUTO_PARK_FORWARD_IN, RobotConstants.AUTO_PARK_STRAFE_IN,
                     strafeRight ? "right" : "left");
-            if (!drivetrain.hasImu()) telemetry.addLine("No IMU found, heading hold is off");
             telemetry.update();
         }
         if (isStopRequested()) return;
 
-        drivetrain.resetHeading();
-        drivetrain.odometry.reset();
+        drivetrain.resetPose();
         sleep(delaySeconds * 1000L);
 
         double targetY = (strafeRight ? -1 : 1) * RobotConstants.AUTO_PARK_STRAFE_IN;
@@ -63,12 +61,12 @@ public class ParkAuto extends LinearOpMode {
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive() && timer.seconds() < timeoutSeconds) {
             drivetrain.update();
-            double dx = targetX - drivetrain.odometry.getX();
-            double dy = targetY - drivetrain.odometry.getY();
+            double dx = targetX - drivetrain.x();
+            double dy = targetY - drivetrain.y();
             double distance = Math.hypot(dx, dy);
             if (distance < RobotConstants.AUTO_TOLERANCE_IN) break;
 
-            double heading = drivetrain.getHeading();
+            double heading = drivetrain.heading();
             double forward = dx * Math.cos(heading) + dy * Math.sin(heading);
             double left = -dx * Math.sin(heading) + dy * Math.cos(heading);
 

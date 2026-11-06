@@ -3,71 +3,54 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 
-import java.util.Locale;
+import java.util.List;
 
 public class Intake {
-    private enum State { STOPPED, INTAKING, REVERSING, UNJAMMING }
+    private final VelocityMotor intake;
+    private final VelocityMotor transfer;
 
-    private final DcMotorEx motor;
-    private State state = State.STOPPED;
-    private final ElapsedTime overCurrentTimer = new ElapsedTime();
-    private final ElapsedTime unjamTimer = new ElapsedTime();
-    private double current = 0;
-
-    public Intake(HardwareMap hardwareMap) {
-        motor = hardwareMap.get(DcMotorEx.class, RobotConstants.INTAKE);
-        motor.setDirection(MotorFinder.direction(RobotConstants.INTAKE_REVERSED));
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    public Intake(HardwareMap hardwareMap, DcMotorEx anchor, List<String> warnings) {
+        intake = new VelocityMotor(motor(hardwareMap, RobotConstants.INTAKE, 0,
+                RobotConstants.INTAKE_REVERSED, anchor, warnings), "intake", RobotConstants.INTAKE_MAX_TPS);
+        transfer = new VelocityMotor(motor(hardwareMap, RobotConstants.FEEDER, 2,
+                RobotConstants.FEEDER_REVERSED, anchor, warnings), "transfer", RobotConstants.FEEDER_MAX_TPS);
     }
 
-    public void in() {
-        if (state == State.UNJAMMING) return;
-        if (state != State.INTAKING) overCurrentTimer.reset();
-        setState(State.INTAKING);
+    public void run(boolean hive, boolean in, boolean spitOut, boolean reverse, boolean shooting, List<String> warnings) {
+        double speed = RobotConstants.INTAKE_SPEED;
+
+        double front = 0;
+        if (spitOut || reverse) front = -speed;
+        else if (in) front = speed;
+
+        double back = 0;
+        if (reverse) back = -speed;
+        else if (hive && (in || shooting)) back = speed;
+        else if (!hive && in) back = -speed;
+
+        intake.set(front, warnings);
+        transfer.set(back, warnings);
     }
 
-    public void reverse() { setState(State.REVERSING); }
-    public void stop() { setState(State.STOPPED); }
-
-    public void update() {
-        if (state == State.UNJAMMING) {
-            if (unjamTimer.seconds() > RobotConstants.INTAKE_UNJAM_TIME_S) {
-                setState(State.INTAKING);
-                overCurrentTimer.reset();
-            }
-            return;
-        }
-        if (!RobotConstants.INTAKE_JAM_DETECTION || state != State.INTAKING) return;
-
-        current = motor.getCurrent(CurrentUnit.AMPS);
-        if (current < RobotConstants.INTAKE_JAM_AMPS) {
-            overCurrentTimer.reset();
-        } else if (overCurrentTimer.seconds() > RobotConstants.INTAKE_JAM_TIME_S) {
-            unjamTimer.reset();
-            setState(State.UNJAMMING);
-        }
-    }
-
-    private void setState(State newState) {
-        if (newState == state) return;
-        state = newState;
-        switch (state) {
-            case INTAKING: motor.setPower(RobotConstants.INTAKE_POWER); break;
-            case REVERSING:
-            case UNJAMMING: motor.setPower(-RobotConstants.INTAKE_POWER); break;
-            default: motor.setPower(0); break;
-        }
+    public void stop() {
+        intake.stop();
+        transfer.stop();
     }
 
     public void addTelemetry(Telemetry telemetry) {
-        telemetry.addData("Intake", state + (RobotConstants.INTAKE_JAM_DETECTION
-                ? String.format(Locale.ROOT, "  (%.1f A)", current) : ""));
+        telemetry.addData("Intake", "%.0f tps %s", intake.tps(), intake.usingVelocity() ? "" : "(power)");
+        telemetry.addData("Transfer", "%.0f tps %s", transfer.tps(), transfer.usingVelocity() ? "" : "(power)");
+    }
+
+    private static DcMotorEx motor(HardwareMap hardwareMap, String name, int port, boolean reversed,
+                                   DcMotorEx anchor, List<String> warnings) {
+        DcMotorEx motor = MotorFinder.expansion(hardwareMap, name, port, anchor, warnings);
+        motor.setDirection(MotorFinder.direction(reversed));
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        return motor;
     }
 }

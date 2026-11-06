@@ -1,64 +1,38 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 
-public class Elevator {
-    private final DcMotor motor;
-    private int target = RobotConstants.ELEVATOR_DOWN;
-    private boolean relaxed = false;
+import java.util.List;
 
-    public Elevator(HardwareMap hardwareMap) {
-        motor = hardwareMap.get(DcMotor.class, RobotConstants.ELEVATOR);
+public class Elevator {
+    private static final double UP = 1.0;
+    private static final double DOWN = 0.5;
+    private static final double HOLD = 0.1;
+
+    private final DcMotorEx motor;
+
+    public Elevator(HardwareMap hardwareMap, DcMotorEx anchor, List<String> warnings) {
+        motor = MotorFinder.expansion(hardwareMap, RobotConstants.ELEVATOR, 1, anchor, warnings);
         motor.setDirection(MotorFinder.direction(RobotConstants.ELEVATOR_REVERSED));
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setTargetPosition(target);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motor.setPower(RobotConstants.ELEVATOR_POWER);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public void goToDown() { setTarget(RobotConstants.ELEVATOR_DOWN); }
-    public void goToTransfer() { setTarget(RobotConstants.ELEVATOR_TRANSFER); }
-    public void goToUp() { setTarget(RobotConstants.ELEVATOR_UP); }
-
-    public void manual(double input) {
-        if (input == 0) return;
-        setTarget((int) Math.round(target + input * RobotConstants.ELEVATOR_MANUAL_TICKS_PER_LOOP));
+    public void run(boolean up, boolean down) {
+        if (up && !down) motor.setPower(UP);
+        else if (down && !up) motor.setPower(-DOWN);
+        else motor.setPower(HOLD);
     }
 
-    private void setTarget(int ticks) {
-        target = Range.clip(ticks, RobotConstants.ELEVATOR_DOWN, RobotConstants.ELEVATOR_MAX);
-        motor.setTargetPosition(target);
-    }
-
-    public void update() {
-        boolean shouldRelax = RobotConstants.ELEVATOR_RELAX_AT_BOTTOM
-                && target == RobotConstants.ELEVATOR_DOWN
-                && motor.getCurrentPosition() <= RobotConstants.ELEVATOR_DOWN + RobotConstants.ELEVATOR_TOLERANCE;
-        if (shouldRelax != relaxed) {
-            relaxed = shouldRelax;
-            motor.setPower(relaxed ? 0 : RobotConstants.ELEVATOR_POWER);
-        }
-    }
-
-    public void resetZero() {
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        target = 0;
-        motor.setTargetPosition(0);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        relaxed = false;
-        motor.setPower(RobotConstants.ELEVATOR_POWER);
-    }
+    public void stop() { motor.setPower(0); }
 
     public void addTelemetry(Telemetry telemetry) {
-        int position = motor.getCurrentPosition();
-        boolean atTarget = Math.abs(position - target) <= RobotConstants.ELEVATOR_TOLERANCE;
-        telemetry.addData("Elevator ticks", "%d (target %d)%s%s", position, target,
-                atTarget ? "  at target" : "", relaxed ? "  [relaxed]" : "");
+        telemetry.addData("Elevator", "%d ticks  power %.1f", motor.getCurrentPosition(), motor.getPower());
     }
 }

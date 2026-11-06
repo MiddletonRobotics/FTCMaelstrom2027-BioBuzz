@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -13,7 +13,6 @@ import org.firstinspires.ftc.teamcode.RobotConstants;
 
 import java.util.Iterator;
 
-@Disabled
 @TeleOp(name = "Hardware Check", group = "Testing")
 public class HardwareCheck extends OpMode {
     private static final String[] MOTORS = {
@@ -22,7 +21,7 @@ public class HardwareCheck extends OpMode {
             RobotConstants.INTAKE, RobotConstants.ELEVATOR,
             RobotConstants.FEEDER, RobotConstants.SHOOTER};
     private static final String[] SERVOS = {
-            RobotConstants.FLOWER_SERVO, RobotConstants.GATE_SERVO, RobotConstants.SHOOTER_SERVO};
+            RobotConstants.GATE_SERVO, RobotConstants.RAMP_SERVO};
 
     private final DcMotor[] motors = new DcMotor[MOTORS.length];
 
@@ -52,9 +51,10 @@ public class HardwareCheck extends OpMode {
         for (String name : SERVOS) {
             telemetry.addData(name, found(Servo.class, name));
         }
+        telemetry.addData(RobotConstants.SPIN_SERVO, found(CRServo.class, RobotConstants.SPIN_SERVO));
         telemetry.addLine("--- Other ---");
         telemetry.addData(RobotConstants.IMU, found(IMU.class, RobotConstants.IMU));
-        telemetry.addData("pinpoint", found(GoBildaPinpointDriver.class, "pinpoint"));
+        telemetry.addData("pinpoint", found(GoBildaPinpointDriver.class, RobotConstants.PINPOINT));
         Iterator<VoltageSensor> sensors = hardwareMap.voltageSensor.iterator();
         if (sensors.hasNext()) telemetry.addData("Battery (V)", "%.2f", sensors.next().getVoltage());
         telemetry.update();
