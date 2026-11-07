@@ -21,14 +21,15 @@ public final class Buttons {
     public boolean intake() { return g1.left_trigger > TRIGGER; }
     public boolean shoot() { return g1.right_trigger > TRIGGER; }
     public boolean unjam() { return g1.right_bumper; }
-    public boolean resetHeading() { return g1.options; }
 
-    public boolean elevatorUp() { return g1.dpad_up; }
-    public boolean elevatorDown() { return g1.dpad_down; }
+    public boolean elevatorUp() { return g2.dpad_up; }
+    public boolean elevatorDown() { return g2.dpad_down; }
 
     public boolean switchMode() { return g2.triangle; }
-    public boolean gate() { return g2.circle; }
+    public boolean gate() { return g2.cross; }
     public boolean spitOut() { return g2.left_bumper; }
+    public boolean rollerIn() { return g2.right_trigger > TRIGGER; }
+    public boolean rollerOut() { return g2.right_bumper; }
 
     private static double deadzone(double value) {
         if (Math.abs(value) < DEADZONE) return 0;

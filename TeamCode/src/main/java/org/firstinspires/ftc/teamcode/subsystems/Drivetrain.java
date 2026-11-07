@@ -13,6 +13,8 @@ import java.util.List;
 public class Drivetrain {
     private final DcMotorEx[] wheels;
     private final Pinpoint pinpoint;
+    private final FieldCentric field = new FieldCentric();
+    private long lastNanos = 0;
 
     public Drivetrain(HardwareMap hardwareMap) {
         this(hardwareMap, new ArrayList<>());
@@ -26,6 +28,7 @@ public class Drivetrain {
         for (int i = 0; i < 4; i++) {
             wheels[i].setDirection(MotorFinder.direction(reversed[i]));
             wheels[i].setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            wheels[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         pinpoint = new Pinpoint(hardwareMap);
         if (!pinpoint.found()) warnings.add("no pinpoint, driving robot-centric");
@@ -35,11 +38,21 @@ public class Drivetrain {
 
     public void update() { pinpoint.update(); }
 
-    public boolean fieldCentric() { return pinpoint.problem() == null; }
+    public boolean fieldCentric() {
+        return RobotConstants.FIELD_CENTRIC && pinpoint.found() && field.learned();
+    }
+
+    public void resetForward() { field.zero(pinpoint.heading()); }
 
     public void driveField(double forward, double strafe, double turn) {
-        double h = fieldCentric() ? pinpoint.heading() : 0;
-        drive(forward * Math.cos(h) - strafe * Math.sin(h), forward * Math.sin(h) + strafe * Math.cos(h), turn);
+        long now = System.nanoTime();
+        double dt = lastNanos == 0 ? 0 : (now - lastNanos) / 1e9;
+        lastNanos = now;
+        double heading = pinpoint.found() ? pinpoint.heading() : Double.NaN;
+        field.update(heading, turn, dt);
+        double angle = RobotConstants.FIELD_CENTRIC ? field.angle(heading) : 0;
+        double[] moved = FieldCentric.rotate(forward, strafe, angle);
+        drive(moved[0], moved[1], turn);
     }
 
     public void drive(double forward, double strafe, double turn) {
@@ -53,6 +66,9 @@ public class Drivetrain {
     }
 
     public void resetPose() { pinpoint.setPose(0, 0, 0); }
+    public void setPose(double x, double y, double headingDeg) { pinpoint.setPose(x, y, headingDeg); }
+    public boolean hasPinpoint() { return pinpoint.found(); }
+    public String pinpointProblem() { return pinpoint.problem(); }
     public void resetHeading() { pinpoint.setPose(pinpoint.x(), pinpoint.y(), 0); }
     public double x() { return pinpoint.x(); }
     public double y() { return pinpoint.y(); }
@@ -62,9 +78,34 @@ public class Drivetrain {
         for (DcMotorEx wheel : wheels) wheel.setPower(0);
     }
 
+    public void addWheelTelemetry(Telemetry telemetry) {
+        String[] names = {"FL", "FR", "BL", "BR"};
+        for (int i = 0; i < 4; i++) {
+            telemetry.addData("Wheel " + names[i], "power %.2f  ticks %d  port %d  mode %s",
+                    wheels[i].getPower(), wheels[i].getCurrentPosition(),
+                    wheels[i].getPortNumber(), wheels[i].getMode());
+        }
+    }
+
     public void addTelemetry(Telemetry telemetry) {
-        telemetry.addData("Drive", fieldCentric()
-                ? String.format("FIELD centric, heading %.0f deg (options = reset)", Math.toDegrees(heading()))
-                : "ROBOT centric, " + pinpoint.problem());
+        if (!RobotConstants.FIELD_CENTRIC) {
+            telemetry.addData("Drive", "ROBOT centric (FIELD_CENTRIC is off)");
+            return;
+        }
+        if (!pinpoint.found()) {
+            telemetry.addData("Drive", "ROBOT centric (no pinpoint in config)");
+            return;
+        }
+        if (field.dead()) {
+            telemetry.addData("Drive", "ROBOT centric");
+            telemetry.addLine("! pinpoint heading doesn't change when turning, check its cable");
+        } else if (!field.learned()) {
+            telemetry.addData("Drive", "robot centric until the first turn, then FIELD centric");
+        } else {
+            telemetry.addData("Drive", "FIELD centric  %.0f deg from forward%s",
+                    Math.toDegrees(field.angle(heading())), field.flipped() ? "  (pinpoint flipped, handled)" : "");
+        }
+        String problem = pinpoint.problem();
+        if (problem != null) telemetry.addLine("  " + problem);
     }
 }

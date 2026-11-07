@@ -48,16 +48,16 @@ public final class RobotConstants {
     public static final double INTAKE_SPEED = 0.85;
     public static final double FEEDER_SPEED = 0.85;
 
-    public static final double GATE_CLOSED = 1.0;
-    public static final double GATE_OPEN = 0.4;
-    public static final double RAMP_DOWN = 0.0;
-    public static final double RAMP_UP = 0.8;
+    public static final double GATE_CLOSED = 0.0;
+    public static final double GATE_OPEN = 0.7;
+    public static final double RAMP_DOWN = 0.1;
+    public static final double RAMP_UP = 0.4;
     public static final double SPIN_POWER = 1.0;
     public static final boolean SPIN_REVERSED = false;
 
     public static final boolean SHOOTER_REVERSED = true;
     public static final double SHOOTER_TICKS_PER_REV = 28.0;
-    public static final double SHOOTER_TARGET_RPM = 3000;
+    public static final double SHOOTER_TARGET_RPM = 4000;
     public static final double SHOOTER_READY_TOLERANCE_RPM = 100;
     public static final double SHOOTER_READY_S = 0.1;
     public static final double SHOOTER_KS = 0.0;
@@ -70,7 +70,7 @@ public final class RobotConstants {
     public static final double LAUNCHER_FREE_RPM = 6000;
     public static final double LAUNCHER_SPINUP_S = 1.5;
 
-    public static final double MIN_PINPOINT_HZ = 100;
+    public static final boolean FIELD_CENTRIC = false;
     public static final double POD_X_OFFSET = 0;
     public static final double POD_Y_OFFSET = 0;
     public static final boolean POD_X_REVERSED = false;

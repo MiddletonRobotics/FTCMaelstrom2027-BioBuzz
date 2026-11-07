@@ -36,9 +36,6 @@ public class Pinpoint {
         if (device == null) return "no \"" + RobotConstants.PINPOINT + "\" in config";
         DeviceStatus status = device.getDeviceStatus();
         if (status != DeviceStatus.READY) return "pinpoint " + status;
-        if (device.getFrequency() < RobotConstants.MIN_PINPOINT_HZ) {
-            return String.format("pinpoint slow (%.0f Hz)", device.getFrequency());
-        }
         return null;
     }
 

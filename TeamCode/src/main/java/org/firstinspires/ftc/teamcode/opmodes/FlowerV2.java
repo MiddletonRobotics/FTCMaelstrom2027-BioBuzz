@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -46,15 +47,16 @@ public class FlowerV2 extends OpMode {
 
     @Override
     public void init_loop() {
+        drivetrain.update();
         telemetry.addLine("flowerv2 ready. Starts in HIVE mode.");
-        telemetry.addLine("Point the robot AWAY from the drivers, keep it still, then START.");
         for (String warning : warnings) telemetry.addLine("! " + warning);
         telemetry.update();
     }
 
     @Override
     public void start() {
-        drivetrain.resetPose();
+        drivetrain.update();
+        drivetrain.resetForward();
         showMode();
     }
 
@@ -69,14 +71,15 @@ public class FlowerV2 extends OpMode {
         lastSwitch = buttons.switchMode();
 
         drivetrain.update();
-        if (buttons.resetHeading()) drivetrain.resetHeading();
-        drivetrain.driveField(buttons.forward(), buttons.strafe(), buttons.turn());
+        drivetrain.drive(buttons.forward(), buttons.strafe(), buttons.turn());
 
         boolean reverse = buttons.unjam();
         boolean shooting = hive && buttons.shoot() && !reverse;
         double roller = shooter.run(shooting, reverse);
+        if (buttons.rollerIn()) roller = RobotConstants.SPIN_POWER;
+        else if (buttons.rollerOut()) roller = -RobotConstants.SPIN_POWER;
         intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, warnings);
-        servos.set(buttons.gate(), !hive, roller);
+        servos.set(buttons.gate(), hive, roller);
         elevator.run(buttons.elevatorUp(), buttons.elevatorDown());
 
         telemetry.addLine(hive ? "===== HIVE MODE (shooter) =====" : "===== FLOWER MODE (elevator) =====");

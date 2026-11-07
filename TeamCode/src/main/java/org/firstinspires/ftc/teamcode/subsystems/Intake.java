@@ -28,9 +28,8 @@ public class Intake {
         else if (in) front = speed;
 
         double back = 0;
-        if (reverse) back = -speed;
-        else if (hive && (in || shooting)) back = speed;
-        else if (!hive && in) back = -speed;
+        if (reverse || shooting) back = -speed;
+        else if (in) back = hive ? -speed : speed;
 
         intake.set(front, warnings);
         transfer.set(back, warnings);

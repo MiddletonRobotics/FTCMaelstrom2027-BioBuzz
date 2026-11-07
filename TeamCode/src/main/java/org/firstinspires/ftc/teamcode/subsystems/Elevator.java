@@ -32,6 +32,8 @@ public class Elevator {
 
     public void stop() { motor.setPower(0); }
 
+    public int position() { return motor.getCurrentPosition(); }
+
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addData("Elevator", "%d ticks  power %.1f", motor.getCurrentPosition(), motor.getPower());
     }
