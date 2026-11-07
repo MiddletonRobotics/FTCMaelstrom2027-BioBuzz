@@ -12,7 +12,7 @@ import java.util.List;
 @Autonomous(name = "straight forwards", group = "BioBuzz")
 public class StraightForwards extends LinearOpMode {
     private static final double POWER = 0.4;
-    private static final double SECONDS = 0.5;
+    private static final double SECONDS = 1.25;
 
     @Override
     public void runOpMode() {
@@ -26,5 +26,14 @@ public class StraightForwards extends LinearOpMode {
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive() && timer.seconds() < SECONDS) drivetrain.drive(POWER, 0, 0);
         drivetrain.stop();
+
+        ElapsedTime done = new ElapsedTime();
+        while (opModeIsActive()) {
+            telemetry.addLine("drive finished, opmode still running");
+            telemetry.addData("Time since stop", "%.1f s", done.seconds());
+            telemetry.addData("Battery", "%.2f V", hardwareMap.voltageSensor.iterator().next().getVoltage());
+            telemetry.update();
+            idle();
+        }
     }
 }
