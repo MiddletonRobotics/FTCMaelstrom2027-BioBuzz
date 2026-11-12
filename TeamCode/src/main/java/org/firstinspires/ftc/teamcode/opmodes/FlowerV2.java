@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -55,8 +54,6 @@ public class FlowerV2 extends OpMode {
 
     @Override
     public void start() {
-        drivetrain.update();
-        drivetrain.resetForward();
         showMode();
     }
 
@@ -75,16 +72,16 @@ public class FlowerV2 extends OpMode {
 
         boolean reverse = buttons.unjam();
         boolean shooting = hive && buttons.shoot() && !reverse;
-        double roller = shooter.run(shooting, reverse);
-        if (buttons.rollerIn()) roller = RobotConstants.SPIN_POWER;
-        else if (buttons.rollerOut()) roller = -RobotConstants.SPIN_POWER;
-        intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, warnings);
+        shooter.run(shooting);
+        double roller = 0;
+        if (hive && buttons.spinForward()) roller = 1.0;
+        else if (hive && buttons.spinReverse()) roller = -1.0;
+        intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, buttons.transferFull(), warnings);
         servos.set(buttons.gate(), hive, roller);
         elevator.run(buttons.elevatorUp(), buttons.elevatorDown());
 
         telemetry.addLine(hive ? "===== HIVE MODE (shooter) =====" : "===== FLOWER MODE (elevator) =====");
         for (String warning : warnings) telemetry.addLine("! " + warning);
-        drivetrain.addTelemetry(telemetry);
         shooter.addTelemetry(telemetry);
         intake.addTelemetry(telemetry);
         elevator.addTelemetry(telemetry);

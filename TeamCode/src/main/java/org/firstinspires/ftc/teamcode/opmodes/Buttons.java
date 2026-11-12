@@ -17,6 +17,7 @@ public final class Buttons {
     public double forward() { return deadzone(-g1.left_stick_y); }
     public double strafe() { return deadzone(g1.left_stick_x); }
     public double turn() { return deadzone(g1.right_stick_x); }
+    public boolean resetHeading() { return g1.touchpad; }
 
     public boolean intake() { return g1.left_trigger > TRIGGER; }
     public boolean shoot() { return g1.right_trigger > TRIGGER; }
@@ -28,8 +29,9 @@ public final class Buttons {
     public boolean switchMode() { return g2.triangle; }
     public boolean gate() { return g2.cross; }
     public boolean spitOut() { return g2.left_bumper; }
-    public boolean rollerIn() { return g2.right_trigger > TRIGGER; }
-    public boolean rollerOut() { return g2.right_bumper; }
+    public boolean spinForward() { return g2.right_trigger > TRIGGER; }
+    public boolean spinReverse() { return g2.right_bumper; }
+    public boolean transferFull() { return g2.left_trigger > TRIGGER; }
 
     private static double deadzone(double value) {
         if (Math.abs(value) < DEADZONE) return 0;

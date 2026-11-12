@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.RobotConstants;
 
 import java.util.ArrayList;
@@ -13,8 +16,7 @@ import java.util.List;
 public class Drivetrain {
     private final DcMotorEx[] wheels;
     private final Pinpoint pinpoint;
-    private final FieldCentric field = new FieldCentric();
-    private long lastNanos = 0;
+    private final IMU imu;
 
     public Drivetrain(HardwareMap hardwareMap) {
         this(hardwareMap, new ArrayList<>());
@@ -31,28 +33,28 @@ public class Drivetrain {
             wheels[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         pinpoint = new Pinpoint(hardwareMap);
-        if (!pinpoint.found()) warnings.add("no pinpoint, driving robot-centric");
+        imu = hardwareMap.tryGet(IMU.class, RobotConstants.IMU);
+        if (imu == null) warnings.add("no \"" + RobotConstants.IMU + "\" in config, field centric drives robot centric");
+        else imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RobotConstants.HUB_LOGO, RobotConstants.HUB_USB)));
     }
 
     public DcMotorEx anchor() { return wheels[0]; }
 
     public void update() { pinpoint.update(); }
 
-    public boolean fieldCentric() {
-        return RobotConstants.FIELD_CENTRIC && pinpoint.found() && field.learned();
+    public double yaw() {
+        if (imu == null) return 0;
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
     }
 
-    public void resetForward() { field.zero(pinpoint.heading()); }
+    public void resetYaw() {
+        if (imu != null) imu.resetYaw();
+    }
 
-    public void driveField(double forward, double strafe, double turn) {
-        long now = System.nanoTime();
-        double dt = lastNanos == 0 ? 0 : (now - lastNanos) / 1e9;
-        lastNanos = now;
-        double heading = pinpoint.found() ? pinpoint.heading() : Double.NaN;
-        field.update(heading, turn, dt);
-        double angle = RobotConstants.FIELD_CENTRIC ? field.angle(heading) : 0;
-        double[] moved = FieldCentric.rotate(forward, strafe, angle);
-        drive(moved[0], moved[1], turn);
+    public void driveFieldCentric(double forward, double strafe, double turn) {
+        double yaw = yaw();
+        double cos = Math.cos(yaw), sin = Math.sin(yaw);
+        drive(forward * cos - strafe * sin, forward * sin + strafe * cos, turn);
     }
 
     public void drive(double forward, double strafe, double turn) {
@@ -85,27 +87,5 @@ public class Drivetrain {
                     wheels[i].getPower(), wheels[i].getCurrentPosition(),
                     wheels[i].getPortNumber(), wheels[i].getMode());
         }
-    }
-
-    public void addTelemetry(Telemetry telemetry) {
-        if (!RobotConstants.FIELD_CENTRIC) {
-            telemetry.addData("Drive", "ROBOT centric (FIELD_CENTRIC is off)");
-            return;
-        }
-        if (!pinpoint.found()) {
-            telemetry.addData("Drive", "ROBOT centric (no pinpoint in config)");
-            return;
-        }
-        if (field.dead()) {
-            telemetry.addData("Drive", "ROBOT centric");
-            telemetry.addLine("! pinpoint heading doesn't change when turning, check its cable");
-        } else if (!field.learned()) {
-            telemetry.addData("Drive", "robot centric until the first turn, then FIELD centric");
-        } else {
-            telemetry.addData("Drive", "FIELD centric  %.0f deg from forward%s",
-                    Math.toDegrees(field.angle(heading())), field.flipped() ? "  (pinpoint flipped, handled)" : "");
-        }
-        String problem = pinpoint.problem();
-        if (problem != null) telemetry.addLine("  " + problem);
     }
 }

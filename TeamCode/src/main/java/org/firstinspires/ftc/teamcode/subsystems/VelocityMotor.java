@@ -36,8 +36,16 @@ public class VelocityMotor {
             warnings.add(name + " encoder reads 0, switched to plain power");
         }
 
-        if (velocity) motor.setVelocity(speed * maxTps);
-        else motor.setPower(speed);
+        if (velocity) {
+            if (motor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            motor.setVelocity(speed * maxTps);
+        } else motor.setPower(speed);
+    }
+
+    public void full(double direction) {
+        wasOn = false;
+        if (motor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor.setPower(direction);
     }
 
     public void stop() { motor.setPower(0); }

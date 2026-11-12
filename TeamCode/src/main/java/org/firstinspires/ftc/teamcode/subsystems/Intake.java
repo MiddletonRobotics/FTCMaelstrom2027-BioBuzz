@@ -20,11 +20,13 @@ public class Intake {
                 RobotConstants.FEEDER_REVERSED, anchor, warnings), "transfer", RobotConstants.FEEDER_MAX_TPS);
     }
 
-    public void run(boolean hive, boolean in, boolean spitOut, boolean reverse, boolean shooting, List<String> warnings) {
+    public void run(boolean hive, boolean in, boolean spitOut, boolean reverse, boolean shooting, boolean transferFull, List<String> warnings) {
         double speed = RobotConstants.INTAKE_SPEED;
 
+        boolean toShooter = hive && transferFull && !reverse;
+
         double front = 0;
-        if (spitOut || reverse) front = -speed;
+        if (spitOut || reverse || toShooter) front = -speed;
         else if (in) front = speed;
 
         double back = 0;
@@ -32,7 +34,8 @@ public class Intake {
         else if (in) back = hive ? -speed : speed;
 
         intake.set(front, warnings);
-        transfer.set(back, warnings);
+        if (toShooter) transfer.full(-1.0);
+        else transfer.set(back, warnings);
     }
 
     public void stop() {
