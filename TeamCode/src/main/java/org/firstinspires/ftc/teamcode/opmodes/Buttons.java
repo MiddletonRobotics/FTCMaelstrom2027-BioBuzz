@@ -28,10 +28,10 @@ public final class Buttons {
 
     public boolean switchMode() { return g2.triangle; }
     public boolean gate() { return g2.cross; }
+    public boolean deFlower() { return g2.square; }
     public boolean spitOut() { return g2.left_bumper; }
-    public boolean spinForward() { return g2.right_trigger > TRIGGER; }
-    public boolean spinReverse() { return g2.right_bumper; }
     public boolean transferFull() { return g2.left_trigger > TRIGGER; }
+    public boolean transferReverse() { return g2.right_bumper; }
 
     private static double deadzone(double value) {
         if (Math.abs(value) < DEADZONE) return 0;

@@ -22,9 +22,7 @@ public class Shooter {
         flywheel.update();
     }
 
-    public void stop() { flywheel.stop(); }
-
-    public void addTelemetry(Telemetry telemetry) {
+    public void stop() { flywheel.stop(); }    public void addTelemetry(Telemetry telemetry) {
         telemetry.addData("Shooter", "%.0f / %.0f rpm  %s", flywheel.rpm(), flywheel.target(),
                 flywheel.target() <= 0 ? "off" : flywheel.atSpeed() ? "AT SPEED" : "spinning up");
         if (!flywheel.hasEncoder()) telemetry.addLine("! shooter encoder reads 0, using plain power");

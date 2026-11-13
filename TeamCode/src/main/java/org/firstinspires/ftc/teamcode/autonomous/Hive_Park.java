@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.RobotConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Servos;
@@ -74,13 +73,13 @@ public class Hive_Park extends LinearOpMode {
         while (opModeIsActive() && timer.seconds() < SHOOT_S) {
             drivetrain.stop();
             shooter.run(true);
-            intake.run(true, false, false, false, true, false, warnings);
-            servos.set(false, true, RobotConstants.SPIN_POWER);
+            intake.run(true, false, false, false, true, false, false, warnings);
+            servos.set(false, true);
             show();
         }
         shooter.run(false);
         intake.stop();
-        servos.set(false, true, 0);
+        servos.set(false, true);
     }
 
     private void show() {

@@ -22,8 +22,8 @@ public final class RobotConstants {
     public static final String FEEDER = "transfer";
     public static final String SHOOTER = "shooter";
     public static final String GATE_SERVO = "gateServo";
+    public static final String DEFLOWER_SERVO = "deFlower";
     public static final String RAMP_SERVO = "rampServo";
-    public static final String SPIN_SERVO = "spinServo";
 
     public static final boolean FRONT_LEFT_REVERSED = false;
     public static final boolean FRONT_RIGHT_REVERSED = true;
@@ -53,15 +53,15 @@ public final class RobotConstants {
 
     public static final double GATE_CLOSED = 0.0;
     public static final double GATE_OPEN = 0.7;
+    public static final double DEFLOWER_CLOSED = 0.0;
+    public static final double DEFLOWER_OPEN = 0.7;
     public static final double RAMP_DOWN = 0.55;
     public static final double RAMP_UP = 0.4;
-    public static final double SPIN_POWER = 1.0;
-    public static final boolean SPIN_REVERSED = false;
 
     public static final boolean SHOOTER_REVERSED = true;
     public static final double SHOOTER_TICKS_PER_REV = 28.0;
-    public static final double SHOOTER_TARGET_RPM = 3800;
-    public static final double SHOOTER_READY_TOLERANCE_RPM = 100;
+    public static final double SHOOTER_TARGET_RPM = 4400;
+    public static final double SHOOTER_READY_TOLERANCE_RPM = 200;
     public static final double SHOOTER_READY_S = 0.1;
     public static final double SHOOTER_KS = 0.0;
     public static final double SHOOTER_KV = 0.000167;

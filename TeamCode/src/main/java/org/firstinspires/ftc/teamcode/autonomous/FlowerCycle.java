@@ -16,7 +16,7 @@ public class FlowerCycle extends LinearOpMode {
     private static final double BACKWARD_1_S = 1.5;
     private static final double RAISE_S = 0.5;
     private static final double GATE_OPEN_S = 5.0;
-    private static final double BACKWARD_2_S = 2.0;
+    private static final double BACKWARD_2_S = 1.85;
 
     private Drivetrain drivetrain;
     private Elevator elevator;
@@ -53,8 +53,8 @@ public class FlowerCycle extends LinearOpMode {
     }
 
     private void toggleGate() {
-        servos.set(true, false, 0);
-        servos.set(false, false, 0);
+        servos.set(true, false);
+        servos.set(false, false);
     }
 
     private void drive(double seconds, String name) {

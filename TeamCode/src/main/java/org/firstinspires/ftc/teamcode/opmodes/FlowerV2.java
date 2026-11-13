@@ -72,12 +72,10 @@ public class FlowerV2 extends OpMode {
 
         boolean reverse = buttons.unjam();
         boolean shooting = hive && buttons.shoot() && !reverse;
-        shooter.run(shooting);
-        double roller = 0;
-        if (hive && buttons.spinForward()) roller = 1.0;
-        else if (hive && buttons.spinReverse()) roller = -1.0;
-        intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, buttons.transferFull(), warnings);
-        servos.set(buttons.gate(), hive, roller);
+        boolean feeding = shooting || (hive && buttons.transferFull() && !reverse);
+        shooter.run(feeding);
+        intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, buttons.transferFull(), buttons.transferReverse(), warnings);
+        servos.set(buttons.gate(), hive, buttons.deFlower());
         elevator.run(buttons.elevatorUp(), buttons.elevatorDown());
 
         telemetry.addLine(hive ? "===== HIVE MODE (shooter) =====" : "===== FLOWER MODE (elevator) =====");

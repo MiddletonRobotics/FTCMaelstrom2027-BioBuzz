@@ -130,7 +130,7 @@ public class FlywheelTuning extends OpMode {
         if (phase != Phase.MANUAL && flywheel.backwards()) abort("spinning backwards. Flip SHOOTER_REVERSED, push, run again.");
 
         if (transfer != null) transfer.setPower(phase == Phase.MANUAL && g.right_trigger > 0.1 ? RobotConstants.FEEDER_SPEED : 0);
-        servos.set(g.circle, false, g.dpad_right ? RobotConstants.SPIN_POWER : 0);
+        servos.set(g.circle, false);
         watchShots();
         record();
         show();
@@ -328,7 +328,7 @@ public class FlywheelTuning extends OpMode {
     private void show() {
         telemetry.addLine("triangle AUTO TUNE   share stop   cross spin on/off   RB/LB +-100 rpm");
         telemetry.addLine("square pick gain   dpad up/down change it   dpad left boost   options save");
-        telemetry.addLine("RT transfer   circle gate   dpad right spinner");
+        telemetry.addLine("RT transfer   circle gate");
         telemetry.addLine();
         if (!autoMessage.isEmpty()) telemetry.addLine(autoMessage);
         if (phase == Phase.FF) telemetry.addData("Power", "%.1f  (%d/%d)", FF_POWERS[step], step + 1, FF_POWERS.length);
