@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmodes;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -17,20 +17,21 @@ public final class Buttons {
     public double forward() { return deadzone(-g1.left_stick_y); }
     public double strafe() { return deadzone(g1.left_stick_x); }
     public double turn() { return deadzone(g1.right_stick_x); }
-    public boolean resetHeading() { return g1.touchpad; }
 
     public boolean intake() { return g1.left_trigger > TRIGGER; }
     public boolean shoot() { return g1.right_trigger > TRIGGER; }
     public boolean unjam() { return g1.right_bumper; }
+    public boolean transfer() { return g1.square || g2.square; }
 
     public boolean elevatorUp() { return g2.dpad_up; }
     public boolean elevatorDown() { return g2.dpad_down; }
 
     public boolean switchMode() { return g2.triangle; }
     public boolean gate() { return g2.cross; }
-    public boolean deFlower() { return g2.square; }
-    public boolean spitOut() { return g2.left_bumper; }
-    public boolean transferFull() { return g2.left_trigger > TRIGGER; }
+    public boolean deFlower() { return g2.left_trigger > TRIGGER; }
+    public boolean spitOut() { return g2.right_trigger > TRIGGER; }
+    public boolean autoShot() { return g2.left_bumper; }
+    public boolean transferFull() { return g2.circle; }
     public boolean transferReverse() { return g2.right_bumper; }
 
     private static double deadzone(double value) {

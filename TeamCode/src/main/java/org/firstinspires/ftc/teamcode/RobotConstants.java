@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection;
-
 public final class RobotConstants {
     private RobotConstants() {}
 
@@ -15,7 +12,6 @@ public final class RobotConstants {
     public static final int BACK_LEFT_PORT = 0;
     public static final int BACK_RIGHT_PORT = 1;
 
-    public static final String IMU = "imu";
     public static final String PINPOINT = "pinpoint";
     public static final String INTAKE = "intake";
     public static final String ELEVATOR = "elevator";
@@ -31,37 +27,40 @@ public final class RobotConstants {
     public static final boolean BACK_RIGHT_REVERSED = false;
 
     public static final double TURN_SCALE = 1.0;
-    public static final double STICK_DEADBAND = 0.05;
     public static final double STRAFE_CORRECTION = 1.1;
     public static final double NOMINAL_VOLTAGE = 12.0;
-
-    public static final double AUTO_PARK_FORWARD_IN = 24;
-    public static final double AUTO_PARK_STRAFE_IN = 0;
-    public static final double AUTO_DRIVE_KP = 0.05;
-    public static final double AUTO_HEADING_KP = 1.0;
-    public static final double AUTO_MAX_POWER = 0.6;
-    public static final double AUTO_MIN_POWER = 0.12;
-    public static final double AUTO_TOLERANCE_IN = 1.0;
 
     public static final boolean INTAKE_REVERSED = false;
     public static final boolean ELEVATOR_REVERSED = false;
     public static final boolean FEEDER_REVERSED = false;
     public static final double INTAKE_MAX_TPS = 2600;
     public static final double FEEDER_MAX_TPS = 2600;
-    public static final double INTAKE_SPEED = 0.85;
-    public static final double FEEDER_SPEED = 0.85;
+    public static final double INTAKE_SPEED = 0.75;
+    public static final double TRANSFER_POWER = 0.45;
 
     public static final double GATE_CLOSED = 0.0;
     public static final double GATE_OPEN = 0.7;
     public static final double DEFLOWER_CLOSED = 0.0;
-    public static final double DEFLOWER_OPEN = 0.7;
+    public static final double DEFLOWER_OPEN = 0.889;
     public static final double RAMP_DOWN = 0.55;
     public static final double RAMP_UP = 0.4;
 
     public static final boolean SHOOTER_REVERSED = true;
     public static final double SHOOTER_TICKS_PER_REV = 28.0;
-    public static final double SHOOTER_TARGET_RPM = 4400;
-    public static final double SHOOTER_READY_TOLERANCE_RPM = 200;
+    public static final double SHOOTER_TARGET_RPM = 3645;
+
+    public static final double SHOOTER_IDLE_RPM = 225;
+    public static final double SHOOTER_IDLE_KI = 0.00015;
+    public static final double SHOOTER_IDLE_START_POWER = 0.06;
+    public static final double SHOOTER_IDLE_MAX_POWER = 0.25;
+    public static final double SHOOTER_AVG_WINDOW_S = 0.25;
+    public static final double SHOOTER_LOW_RPM = 1000;
+    public static final double SHOOTER_MIN_RPM = 3595;
+    public static final double AUTO_SHOOTER_RPM = 4283;
+    public static final double SHOOTER_MAX_RPM = 3695;
+    public static final double SHOOTER_GUARD_RPM = 25;
+    public static final double SHOOTER_READY_TOLERANCE_RPM = 100;
+
     public static final double SHOOTER_READY_S = 0.1;
     public static final double SHOOTER_KS = 0.0;
     public static final double SHOOTER_KV = 0.000167;
@@ -70,11 +69,7 @@ public final class RobotConstants {
     public static final double SHOOTER_KD = 0.0;
     public static final double SHOOTER_I_LIMIT = 0.3;
     public static final double SHOOTER_BOOST_RPM = 300;
-    public static final double LAUNCHER_FREE_RPM = 6000;
     public static final double LAUNCHER_SPINUP_S = 1.5;
-
-    public static final LogoFacingDirection HUB_LOGO = LogoFacingDirection.UP;
-    public static final UsbFacingDirection HUB_USB = UsbFacingDirection.FORWARD;
     public static final double POD_X_OFFSET = 0;
     public static final double POD_Y_OFFSET = 0;
     public static final boolean POD_X_REVERSED = false;

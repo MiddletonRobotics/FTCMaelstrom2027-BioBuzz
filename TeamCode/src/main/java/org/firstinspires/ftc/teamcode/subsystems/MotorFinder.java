@@ -19,7 +19,7 @@ public final class MotorFinder {
             RobotConstants.FRONT_LEFT_PORT, RobotConstants.FRONT_RIGHT_PORT,
             RobotConstants.BACK_LEFT_PORT, RobotConstants.BACK_RIGHT_PORT};
 
-    public static DcMotorEx[] drive(HardwareMap hardwareMap, List<String> notes) {
+    public static DcMotorEx[] drive(HardwareMap hardwareMap, List<String> warnings) {
         DcMotorEx[] motors = new DcMotorEx[4];
         DcMotorController hub = null;
         for (int i = 0; i < 4; i++) {
@@ -37,16 +37,16 @@ public final class MotorFinder {
                     throw new IllegalStateException("Can't find " + DRIVE_NAMES[i] + " (control hub port "
                             + DRIVE_PORTS[i] + "). Add it to the robot configuration.");
                 }
-                notes.add(DRIVE_NAMES[i] + " not in config, using control hub port " + DRIVE_PORTS[i]);
+                warnings.add(DRIVE_NAMES[i] + " not in config, using control hub port " + DRIVE_PORTS[i]);
             } else if (motors[i].getController() != hub) {
-                notes.add(DRIVE_NAMES[i] + " is on a different hub than the other drive motors, check config");
+                warnings.add(DRIVE_NAMES[i] + " is on a different hub than the other drive motors, check config");
             }
         }
         return motors;
     }
 
     public static DcMotorEx expansion(HardwareMap hardwareMap, String name, int port,
-                                      DcMotorEx driveMotor, List<String> notes) {
+                                      DcMotorEx driveMotor, List<String> warnings) {
         DcMotorEx motor = hardwareMap.tryGet(DcMotorEx.class, name);
         if (motor != null) return motor;
         motor = onPort(hardwareMap, port, driveMotor.getController(), false);
@@ -54,7 +54,7 @@ public final class MotorFinder {
             throw new IllegalStateException("Can't find " + name + " (expansion hub port " + port
                     + "). Add it to the robot configuration.");
         }
-        notes.add(name + " not in config, using expansion hub port " + port);
+        warnings.add(name + " not in config, using expansion hub port " + port);
         return motor;
     }
 

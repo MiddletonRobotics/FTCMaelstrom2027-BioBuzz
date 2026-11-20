@@ -14,27 +14,36 @@ public class Intake {
     private final VelocityMotor transfer;
 
     public Intake(HardwareMap hardwareMap, DcMotorEx anchor, List<String> warnings) {
-        intake = new VelocityMotor(motor(hardwareMap, RobotConstants.INTAKE, 0,
-                RobotConstants.INTAKE_REVERSED, anchor, warnings), "intake", RobotConstants.INTAKE_MAX_TPS);
-        transfer = new VelocityMotor(motor(hardwareMap, RobotConstants.FEEDER, 2,
-                RobotConstants.FEEDER_REVERSED, anchor, warnings), "transfer", RobotConstants.FEEDER_MAX_TPS);
+        intake = new VelocityMotor(motor(hardwareMap, RobotConstants.INTAKE, 0, RobotConstants.INTAKE_REVERSED, anchor, warnings),
+                "intake", RobotConstants.INTAKE_MAX_TPS, warnings);
+        transfer = new VelocityMotor(motor(hardwareMap, RobotConstants.FEEDER, 2, RobotConstants.FEEDER_REVERSED, anchor, warnings),
+                "transfer", RobotConstants.FEEDER_MAX_TPS, warnings);
     }
 
-    public void run(boolean hive, boolean in, boolean spitOut, boolean reverse, boolean shooting, boolean transferFull, boolean transferReverse, List<String> warnings) {
+    public void run(boolean hive, boolean in, boolean spitOut, boolean unjam,
+                    boolean transferFull, boolean transferReverse, boolean transferIn) {
         double speed = RobotConstants.INTAKE_SPEED;
+        double power = RobotConstants.TRANSFER_POWER;
+        boolean toShooter = hive && transferFull && !unjam;
 
-        boolean toShooter = hive && transferFull && !reverse;
+        if (spitOut || unjam || toShooter) intake.setSpeed(-speed);
+        else if (in) intake.setSpeed(speed);
+        else intake.setSpeed(0);
 
-        double front = 0;
-        if (spitOut || reverse || toShooter) front = -speed;
-        else if (in) front = speed;
+        if (unjam) transfer.setPower(-power);
+        else if (hive && transferReverse) transfer.setPower(power);
+        else if (toShooter || (hive && transferIn)) transfer.setPower(-power);
+        else if (in) transfer.setPower(hive ? -power : power);
+        else transfer.setPower(0);
+    }
 
-        intake.set(front, warnings);
-        if (reverse) transfer.set(-speed, warnings);
-        else if (hive && transferReverse) transfer.full(1.0);
-        else if (shooting || toShooter) transfer.full(-1.0);
-        else if (in) transfer.set(hive ? -speed : speed, warnings);
-        else transfer.set(0, warnings);
+    public void load() {
+        run(true, true, false, false, false, false, false);
+    }
+
+    public void feedShooter() {
+        intake.setPower(1.0);
+        transfer.setPower(-RobotConstants.TRANSFER_POWER);
     }
 
     public void stop() {
@@ -43,8 +52,8 @@ public class Intake {
     }
 
     public void addTelemetry(Telemetry telemetry) {
-        telemetry.addData("Intake", "%.0f tps %s", intake.tps(), intake.usingVelocity() ? "" : "(power)");
-        telemetry.addData("Transfer", "%.0f tps %s", transfer.tps(), transfer.usingVelocity() ? "" : "(power)");
+        telemetry.addData("Intake", "%.0f tps %s", intake.tps(), intake.usingEncoder() ? "" : "(power)");
+        telemetry.addData("Transfer", "%.0f tps (%.0f%% power)", transfer.tps(), RobotConstants.TRANSFER_POWER * 100);
     }
 
     private static DcMotorEx motor(HardwareMap hardwareMap, String name, int port, boolean reversed,

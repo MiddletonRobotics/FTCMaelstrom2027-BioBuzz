@@ -532,7 +532,6 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
             }
         }
 
-
         return coefficients;
     }
 
@@ -791,7 +790,6 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
         double error = headingError - brakeDist;
         return Utils.clamp(headingKP * error, -0.3, 1.0) / 2;
     }
-
 
     private void drive(Drivetrain drivetrain, Localizer localizer) {
         drivetrain.drive(new DrivePowers(power * direction, 0.0, getHeadingPower(localizer)), false);
@@ -1254,4 +1252,3 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
         this.tau = -1.0/linReg[1];
     }
 }
-

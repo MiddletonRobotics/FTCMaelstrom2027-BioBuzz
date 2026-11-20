@@ -17,7 +17,7 @@ public class Pinpoint {
         device = hardwareMap.tryGet(GoBildaPinpointDriver.class, RobotConstants.PINPOINT);
         if (device == null) return;
         device.setOffsets(RobotConstants.POD_X_OFFSET, RobotConstants.POD_Y_OFFSET, DistanceUnit.INCH);
-        device.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        device.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         device.setEncoderDirections(direction(RobotConstants.POD_X_REVERSED), direction(RobotConstants.POD_Y_REVERSED));
         device.resetPosAndIMU();
     }

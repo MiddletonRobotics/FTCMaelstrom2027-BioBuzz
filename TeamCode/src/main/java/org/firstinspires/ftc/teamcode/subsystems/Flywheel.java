@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.RobotConstants.*;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.RobotConstants;
+import java.util.ArrayDeque;
+import java.util.Iterator;
 
 public class Flywheel {
     private static final double DEAD_TPS = 20;
@@ -16,25 +19,21 @@ public class Flywheel {
     private final DcMotorEx motor;
     private final VoltageSensor battery;
     private final ElapsedTime clock = new ElapsedTime();
-    private final ElapsedTime deadTime = new ElapsedTime();
+    private final ElapsedTime deadTime = new ElapsedTime(   );
+    private final ElapsedTime backTime = new ElapsedTime();
     private final ElapsedTime inBand = new ElapsedTime();
     private final ElapsedTime onTime = new ElapsedTime();
-
-    private double kS = RobotConstants.SHOOTER_KS;
-    private double kV = RobotConstants.SHOOTER_KV;
-    private double kP = RobotConstants.SHOOTER_KP;
-    private double kI = RobotConstants.SHOOTER_KI;
-    private double kD = RobotConstants.SHOOTER_KD;
-    private double boost = RobotConstants.SHOOTER_BOOST_RPM;
+    private final ArrayDeque<double[]> window = new ArrayDeque<>();
 
     private double target = 0;
-    private double open = Double.NaN;
     private double rpm = 0;
     private double power = 0;
     private double volts;
     private double integral = 0;
     private double lastError = 0;
     private double lastTime = 0;
+    private double idlePower = SHOOTER_IDLE_START_POWER;
+    private int ticks = 0;
     private boolean encoder = true;
 
     public Flywheel(DcMotorEx motor, VoltageSensor battery) {
@@ -46,61 +45,65 @@ public class Flywheel {
         volts = readVolts();
     }
 
-    public void setGains(double kS, double kV, double kP, double kI, double kD) {
-        this.kS = kS;
-        this.kV = kV;
-        this.kP = kP;
-        this.kI = kI;
-        this.kD = kD;
-        integral = 0;
-    }
-
-    public void setBoost(double rpm) { boost = rpm; }
-
     public void setRpm(double rpm) {
-        if (target <= 0 && rpm > 0) onTime.reset();
+        if (target <= SHOOTER_IDLE_RPM && rpm > SHOOTER_IDLE_RPM) onTime.reset();
         target = Math.max(0, rpm);
-        open = Double.NaN;
-    }
-
-    public void setOpenPower(double p) {
-        open = p;
-        target = 0;
     }
 
     public void update() {
         double now = clock.seconds();
         double dt = Math.max(now - lastTime, 0.001);
         lastTime = now;
-        rpm = motor.getVelocity() / RobotConstants.SHOOTER_TICKS_PER_REV * 60;
-        if (encoder && rpm < -100) encoder = false;
+        double tps = motor.getVelocity();
+        rpm = readRpm(now, tps);
+
+        if (rpm > -100) backTime.reset();
+        if (encoder && backTime.seconds() > 0.3) encoder = false;
+
+        if (!encoder && tps > 200) encoder = true;
+
+        boolean idle = target > 0 && target <= SHOOTER_IDLE_RPM;
+        boolean bandTarget = target >= SHOOTER_MIN_RPM && target <= SHOOTER_MAX_RPM;
         volts += 0.2 * (readVolts() - volts);
 
         double p;
-        if (!Double.isNaN(open)) {
-            p = open;
-        } else if (target <= 0) {
+        if (target <= 0) {
             p = 0;
             integral = 0;
         } else {
             double error = target - rpm;
-            double ff = (kS + kV * target) * RobotConstants.NOMINAL_VOLTAGE / volts;
-            if (!encoder) {
+            double ff = (SHOOTER_KS + SHOOTER_KV * target) * NOMINAL_VOLTAGE / volts;
+
+            if (idle && !encoder) {
+                p = SHOOTER_IDLE_START_POWER;
+            } else if (idle) {
+                if (rpm > target * 2) {
+                    p = 0;
+                } else {
+                    idlePower = Range.clip(idlePower + SHOOTER_IDLE_KI * error * dt, 0, SHOOTER_IDLE_MAX_POWER);
+                    p = idlePower;
+                }
+                integral = 0;
+            } else if (!encoder) {
                 p = ff;
-            } else if (boost > 0 && error > boost) {
+            } else if (bandTarget && rpm < SHOOTER_MIN_RPM + SHOOTER_GUARD_RPM) {
+                p = 1;
+            } else if (bandTarget && rpm > SHOOTER_MAX_RPM - SHOOTER_GUARD_RPM) {
+                p = 0;
+            } else if (SHOOTER_BOOST_RPM > 0 && error > SHOOTER_BOOST_RPM) {
                 p = 1;
                 integral = 0;
             } else {
-                if (kI > 0) {
-                    double cap = RobotConstants.SHOOTER_I_LIMIT / kI;
+                if (SHOOTER_KI > 0) {
+                    double cap = SHOOTER_I_LIMIT / SHOOTER_KI;
                     integral = Range.clip(integral + error * dt, -cap, cap);
                 }
-                p = ff + kP * error + kI * integral + kD * (error - lastError) / dt;
+                p = ff + SHOOTER_KP * error + SHOOTER_KI * integral + SHOOTER_KD * (error - lastError) / dt;
             }
             lastError = error;
         }
 
-        if (encoder && p > DEAD_POWER && Math.abs(motor.getVelocity()) < DEAD_TPS) {
+        if (encoder && !idle && p > DEAD_POWER && Math.abs(tps) < DEAD_TPS) {
             if (deadTime.seconds() > DEAD_S) encoder = false;
         } else {
             deadTime.reset();
@@ -108,32 +111,52 @@ public class Flywheel {
 
         power = Range.clip(p, 0, 1);
         motor.setPower(power);
-        if (Math.abs(target - rpm) > RobotConstants.SHOOTER_READY_TOLERANCE_RPM) inBand.reset();
+
+        boolean inRange = bandTarget
+                ? rpm >= SHOOTER_MIN_RPM && rpm <= SHOOTER_MAX_RPM
+                : Math.abs(target - rpm) <= SHOOTER_READY_TOLERANCE_RPM;
+        if (!inRange) inBand.reset();
     }
 
     public boolean atSpeed() {
         if (target <= 0) return false;
-        if (!encoder) return onTime.seconds() > RobotConstants.LAUNCHER_SPINUP_S;
-        return inBand.seconds() > RobotConstants.SHOOTER_READY_S;
+        if (!encoder) return onTime.seconds() > LAUNCHER_SPINUP_S;
+        return inBand.seconds() > SHOOTER_READY_S;
     }
 
     public void stop() {
         target = 0;
-        open = Double.NaN;
         integral = 0;
         power = 0;
         motor.setPower(0);
     }
 
+    public int ticks() { return ticks; }
     public double rpm() { return rpm; }
     public double target() { return target; }
     public double power() { return power; }
     public double volts() { return volts; }
     public boolean hasEncoder() { return encoder; }
-    public boolean backwards() { return encoder && rpm < -100; }
+
+    private double readRpm(double now, double tps) {
+        ticks = motor.getCurrentPosition();
+        window.addLast(new double[]{now, ticks});
+        while (window.size() > 2) {
+            Iterator<double[]> it = window.iterator();
+            it.next();
+            if (now - it.next()[0] < SHOOTER_AVG_WINDOW_S) break;
+            window.removeFirst();
+        }
+
+        double fast = tps / SHOOTER_TICKS_PER_REV * 60;
+        double[] first = window.peekFirst();
+        double span = now - first[0];
+        if (span < 0.05 || Math.abs(fast) > SHOOTER_LOW_RPM) return fast;
+        return (ticks - first[1]) / span / SHOOTER_TICKS_PER_REV * 60;
+    }
 
     private double readVolts() {
         double v = battery.getVoltage();
-        return v > 6 ? v : RobotConstants.NOMINAL_VOLTAGE;
+        return v > 6 ? v : NOMINAL_VOLTAGE;
     }
 }

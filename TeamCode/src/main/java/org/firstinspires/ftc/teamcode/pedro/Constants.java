@@ -32,7 +32,7 @@ public class Constants {
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set(RobotConstants.PINPOINT);
-        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         c.xPodOffset.set(RobotConstants.POD_X_OFFSET);
         c.yPodOffset.set(RobotConstants.POD_Y_OFFSET);
         c.xPodDirection.set(Pinpoint.direction(RobotConstants.POD_X_REVERSED));
@@ -41,8 +41,7 @@ public class Constants {
         c.offsetUnits.set(DistanceUnit.INCH);
     });
 
-    public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
-    });
+    public static ForesightConfig foresightConfig = new ForesightConfig(c -> {});
 
     public static Drivetrain drivetrain(HardwareMap hardwareMap) {
         return new Mecanum(hardwareMap, drivetrainConfig);

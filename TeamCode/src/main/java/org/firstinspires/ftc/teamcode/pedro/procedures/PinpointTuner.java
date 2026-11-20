@@ -70,7 +70,6 @@ public class PinpointTuner extends Procedure {
 }
 
 class PinpointCustomPodScalar extends TuningOpMode<Double> {
-
     String name;
     double distance;
 
@@ -248,7 +247,6 @@ class PinpointOffsets extends TuningOpMode<List<Double>> {
         }
         localizer.setPose(Pose.zero());
         localizer.update();
-
 
         Thread.sleep(1000);
         waitForStart();

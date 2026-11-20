@@ -12,20 +12,18 @@ public class Servos {
     private final Servo gate;
     private final Servo ramp;
     private final Servo deFlower;
-    private boolean gateOpen = false;
-    private boolean lastGate = false;
-    private boolean gateStarted = false;
+
     private boolean hive = false;
+    private boolean gateOpen = false;
     private boolean deFlowerOpen = false;
+    private boolean lastGate = false;
     private boolean lastDeFlower = false;
+    private boolean started = false;
 
     public Servos(HardwareMap hardwareMap, List<String> warnings) {
-        gate = hardwareMap.tryGet(Servo.class, RobotConstants.GATE_SERVO);
-        if (gate == null) warnings.add("no \"" + RobotConstants.GATE_SERVO + "\" in config, gate won't move");
-        ramp = hardwareMap.tryGet(Servo.class, RobotConstants.RAMP_SERVO);
-        if (ramp == null) warnings.add("no \"" + RobotConstants.RAMP_SERVO + "\" in config, ramp won't move");
-        deFlower = hardwareMap.tryGet(Servo.class, RobotConstants.DEFLOWER_SERVO);
-        if (deFlower == null) warnings.add("no \"" + RobotConstants.DEFLOWER_SERVO + "\" in config, deFlower won't move");
+        gate = find(hardwareMap, RobotConstants.GATE_SERVO, "gate", warnings);
+        ramp = find(hardwareMap, RobotConstants.RAMP_SERVO, "ramp", warnings);
+        deFlower = find(hardwareMap, RobotConstants.DEFLOWER_SERVO, "deFlower", warnings);
         move();
     }
 
@@ -34,18 +32,24 @@ public class Servos {
     }
 
     public void set(boolean gateButton, boolean hive, boolean deFlowerButton) {
-        if (deFlowerButton && !lastDeFlower) deFlowerOpen = !deFlowerOpen;
-        lastDeFlower = deFlowerButton;
         if (gateButton && !lastGate) gateOpen = !gateOpen;
+        if (deFlowerButton && !lastDeFlower) deFlowerOpen = !deFlowerOpen;
         lastGate = gateButton;
-        gateStarted = true;
+        lastDeFlower = deFlowerButton;
         this.hive = hive;
+        started = true;
         move();
     }
 
+    public void addTelemetry(Telemetry telemetry) {
+        telemetry.addData("Gate", "%s (%.2f)", gateOpen ? "OPEN" : "closed", gatePosition());
+        telemetry.addData("DeFlower", "%s (%.2f)", deFlowerOpen ? "OPEN" : "closed", deFlowerPosition());
+        telemetry.addData("Ramp", hive ? "DOWN (hive)" : "UP (flower)");
+    }
+
     private void move() {
-        if (gate != null && gateStarted) gate.setPosition(gatePosition());
-        if (deFlower != null && gateStarted) deFlower.setPosition(deFlowerPosition());
+        if (gate != null && started) gate.setPosition(gatePosition());
+        if (deFlower != null && started) deFlower.setPosition(deFlowerPosition());
         if (ramp != null) ramp.setPosition(hive ? RobotConstants.RAMP_DOWN : RobotConstants.RAMP_UP);
     }
 
@@ -57,11 +61,9 @@ public class Servos {
         return deFlowerOpen ? RobotConstants.DEFLOWER_OPEN : RobotConstants.DEFLOWER_CLOSED;
     }
 
-    public void stop() { }
-
-    public void addTelemetry(Telemetry telemetry) {
-        telemetry.addData("Gate", "%s (%.2f)", gateOpen ? "OPEN" : "closed", gatePosition());
-        telemetry.addData("DeFlower", "%s (%.2f)", deFlowerOpen ? "OPEN" : "closed", deFlowerPosition());
-        telemetry.addData("Ramp", hive ? "DOWN (hive)" : "UP (flower)");
+    private static Servo find(HardwareMap hardwareMap, String name, String what, List<String> warnings) {
+        Servo servo = hardwareMap.tryGet(Servo.class, name);
+        if (servo == null) warnings.add("no \"" + name + "\" in config, " + what + " won't move");
+        return servo;
     }
 }

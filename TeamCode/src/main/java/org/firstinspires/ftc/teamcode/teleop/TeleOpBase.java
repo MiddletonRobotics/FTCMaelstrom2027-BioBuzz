@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.opmodes;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
@@ -14,11 +13,11 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp(name = "flowerv2 FIELD centric", group = "BioBuzz")
-public class FlowerField extends OpMode {
+public abstract class TeleOpBase extends OpMode {
     private static final int RUMBLE_MS = 300;
 
     private final List<String> warnings = new ArrayList<>();
+    private final HiveShot hiveShot = new HiveShot();
     private List<LynxModule> hubs;
     private Buttons buttons;
 
@@ -30,7 +29,6 @@ public class FlowerField extends OpMode {
 
     private boolean hive = true;
     private boolean lastSwitch = false;
-    private boolean lastReset = false;
 
     @Override
     public void init() {
@@ -48,14 +46,13 @@ public class FlowerField extends OpMode {
     @Override
     public void init_loop() {
         drivetrain.update();
-        telemetry.addLine("flowerv2 FIELD centric ready. Keep robot still, face it AWAY from you at START.");
+        telemetry.addLine("Ready. Starts in HIVE mode.");
         for (String warning : warnings) telemetry.addLine("! " + warning);
         telemetry.update();
     }
 
     @Override
     public void start() {
-        drivetrain.resetYaw();
         showMode();
     }
 
@@ -70,29 +67,40 @@ public class FlowerField extends OpMode {
         lastSwitch = buttons.switchMode();
 
         drivetrain.update();
-        if (buttons.resetHeading() && !lastReset) {
-            drivetrain.resetYaw();
-            gamepad1.rumble(RUMBLE_MS);
+        drivetrain.drive(buttons.forward(), buttons.strafe(), buttons.turn());
+
+        boolean moving = buttons.forward() != 0 || buttons.strafe() != 0 || buttons.turn() != 0;
+        hiveShot.update(buttons.autoShot(), hive, moving, shooter.ready());
+
+        boolean unjam = buttons.unjam();
+        boolean shooting = hive && buttons.shoot() && !unjam;
+        boolean feeding = shooting || (hive && buttons.transferFull() && !unjam);
+
+        if (hiveShot.shooterOn() && !feeding) shooter.auto(true);
+        else shooter.run(feeding, hive);
+
+        if (hiveShot.feeding() && !unjam) {
+            intake.feedShooter();
+        } else {
+            intake.run(hive, buttons.intake(), buttons.spitOut(), unjam,
+                    buttons.transferFull(), buttons.transferReverse(), buttons.transfer());
         }
-        lastReset = buttons.resetHeading();
-        drivetrain.driveFieldCentric(buttons.forward(), buttons.strafe(), buttons.turn());
 
-        boolean reverse = buttons.unjam();
-        boolean shooting = hive && buttons.shoot() && !reverse;
-        boolean feeding = shooting || (hive && buttons.transferFull() && !reverse);
-        shooter.run(feeding);
-        intake.run(hive, buttons.intake(), buttons.spitOut(), reverse, shooting, buttons.transferFull(), buttons.transferReverse(), warnings);
         servos.set(buttons.gate(), hive, buttons.deFlower());
-        elevator.run(buttons.elevatorUp(), buttons.elevatorDown());
 
-        telemetry.addLine(hive ? "===== HIVE MODE (shooter) =====" : "===== FLOWER MODE (elevator) =====");
-        for (String warning : warnings) telemetry.addLine("! " + warning);
-        telemetry.addData("Drive", "FIELD centric  yaw %.0f deg  (D1 touchpad = reset forward)", Math.toDegrees(drivetrain.yaw()));
-        shooter.addTelemetry(telemetry);
-        intake.addTelemetry(telemetry);
-        elevator.addTelemetry(telemetry);
-        servos.addTelemetry(telemetry);
-        telemetry.update();
+        boolean manualElevator = buttons.elevatorUp() || buttons.elevatorDown();
+        if (hiveShot.active() && !manualElevator) elevator.run(hiveShot.elevatorUp(), hiveShot.elevatorDown());
+        else elevator.run(buttons.elevatorUp(), buttons.elevatorDown());
+
+        showTelemetry();
+    }
+
+    @Override
+    public void stop() {
+        drivetrain.stop();
+        intake.stop();
+        shooter.stop();
+        elevator.stop();
     }
 
     private void showMode() {
@@ -103,12 +111,14 @@ public class FlowerField extends OpMode {
         }
     }
 
-    @Override
-    public void stop() {
-        drivetrain.stop();
-        intake.stop();
-        shooter.stop();
-        elevator.stop();
-        servos.stop();
+    private void showTelemetry() {
+        telemetry.addLine(hive ? "===== HIVE MODE (shooter) =====" : "===== FLOWER MODE (elevator) =====");
+        for (String warning : warnings) telemetry.addLine("! " + warning);
+        hiveShot.addTelemetry(telemetry);
+        shooter.addTelemetry(telemetry);
+        intake.addTelemetry(telemetry);
+        elevator.addTelemetry(telemetry);
+        servos.addTelemetry(telemetry);
+        telemetry.update();
     }
 }

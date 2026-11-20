@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,17 +9,17 @@ import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "straight forwards", group = "BioBuzz")
-public class StraightForwards extends LinearOpMode {
+@Autonomous(name = "Drive Forward", group = "Auto")
+public class DriveForward extends LinearOpMode {
     private static final double POWER = 0.4;
-    private static final double SECONDS = 0.5;
+    private static final double SECONDS = 0.75;
 
     @Override
     public void runOpMode() {
         List<String> warnings = new ArrayList<>();
         Drivetrain drivetrain = new Drivetrain(hardwareMap, warnings);
         for (String warning : warnings) telemetry.addLine("! " + warning);
-        telemetry.addLine("straight forwards: 0.5 s at 40%");
+        telemetry.addLine("straight forwards: 0.75 s at 40%");
         telemetry.update();
         waitForStart();
 

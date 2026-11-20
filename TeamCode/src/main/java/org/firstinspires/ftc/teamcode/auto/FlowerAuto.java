@@ -1,57 +1,54 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Servos;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Hive Auto", group = "BioBuzz")
-public class Hive_Park extends LinearOpMode {
+@Autonomous(name = "Flower", group = "Auto")
+public class FlowerAuto extends LinearOpMode {
     private static final double POWER = 0.4;
-    private static final double FORWARD_1_S = 0.4;
-    private static final double SHOOT_S = 5.0;
-    private static final double STRAFE_LEFT_S = 1.0;
-    private static final double FINAL_S = 2.5;
-    // final leg: 1 unit left for every 10 units forward
-    private static final double FINAL_FORWARD = POWER;
-    private static final double FINAL_STRAFE = -POWER / 10.0;
+    private static final double STRAFE_RIGHT_S = 0.3;
+    private static final double RAISE_S = 0.5;
+    private static final double FORWARD_1_S = 1.4;
+    private static final double GATE_WAIT_S = 5.0;
+    private static final double FORWARD_2_S = 1.0;
 
     private final List<String> warnings = new ArrayList<>();
     private Drivetrain drivetrain;
-    private Intake intake;
-    private Shooter shooter;
+    private Elevator elevator;
     private Servos servos;
     private String step = "ready";
 
     @Override
     public void runOpMode() {
         drivetrain = new Drivetrain(hardwareMap, warnings);
-        intake = new Intake(hardwareMap, drivetrain.anchor(), warnings);
-        shooter = new Shooter(hardwareMap, drivetrain.anchor(), warnings);
+        elevator = new Elevator(hardwareMap, drivetrain.anchor(), warnings);
         servos = new Servos(hardwareMap, warnings);
         for (String warning : warnings) telemetry.addLine("! " + warning);
-        telemetry.addLine("forwards 0.4 s, shoot 5 s, strafe left 1 s, forwards 2.5 s with slight left");
+        telemetry.addLine("strafe right 0.3 s, raise 0.5 s, forwards 1.4 s, open gate, wait 5 s, forwards 1 s");
         telemetry.update();
         waitForStart();
 
+        drive(0, POWER, STRAFE_RIGHT_S, "strafe right");
+        raise();
         drive(POWER, 0, FORWARD_1_S, "forwards");
-        shoot();
-        drive(0, -POWER, STRAFE_LEFT_S, "strafe left");
-        drive(FINAL_FORWARD, FINAL_STRAFE, FINAL_S, "forwards, drifting left");
+
+        servos.set(true, false);
+        servos.set(false, false);
+        hold(GATE_WAIT_S, "gate open, waiting");
+        drive(POWER, 0, FORWARD_2_S, "forwards");
 
         drivetrain.stop();
-        intake.stop();
-        shooter.stop();
-        servos.stop();
         step = "done";
         while (opModeIsActive()) {
+            elevator.run(false, false);
             show();
             idle();
         }
@@ -62,30 +59,36 @@ public class Hive_Park extends LinearOpMode {
         ElapsedTime timer = new ElapsedTime();
         while (opModeIsActive() && timer.seconds() < seconds) {
             drivetrain.drive(forward, strafe, 0);
+            elevator.run(false, false);
             show();
         }
         drivetrain.stop();
     }
 
-    private void shoot() {
-        step = "shooting";
+    private void raise() {
+        step = "raising elevator";
         ElapsedTime timer = new ElapsedTime();
-        while (opModeIsActive() && timer.seconds() < SHOOT_S) {
+        while (opModeIsActive() && timer.seconds() < RAISE_S) {
             drivetrain.stop();
-            shooter.run(true);
-            intake.run(true, false, false, false, true, false, false, warnings);
-            servos.set(false, true);
+            elevator.run(true, false);
             show();
         }
-        shooter.run(false);
-        intake.stop();
-        servos.set(false, true);
+        elevator.run(false, false);
+    }
+
+    private void hold(double seconds, String name) {
+        step = name;
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive() && timer.seconds() < seconds) {
+            drivetrain.stop();
+            elevator.run(false, false);
+            show();
+        }
     }
 
     private void show() {
         telemetry.addData("Auto", step);
-        shooter.addTelemetry(telemetry);
-        intake.addTelemetry(telemetry);
+        elevator.addTelemetry(telemetry);
         servos.addTelemetry(telemetry);
         telemetry.addData("Battery", "%.2f V", hardwareMap.voltageSensor.iterator().next().getVoltage());
         telemetry.update();
